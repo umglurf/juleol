@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-BEGIN { $ENV{DANCER_APPHANDLER} = 'PSGI';}
+BEGIN { $ENV{DANCER_APPHANDLER} = 'PSGI'; $ENV{DANCER_ENVIRONMENT} = 'production'}
 use Dancer2;
 use FindBin '$RealBin';
 use Plack::Handler::FCGI;
