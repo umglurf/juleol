@@ -17,7 +17,7 @@ ol.ratinglist>li {
 li {
   padding: 2px;
 }   
-li label {
+ol.ratinglist li ul li label {
   float: left;
   width: 8em;
 }

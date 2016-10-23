@@ -32,7 +32,23 @@ get '/result/:year' => sub {
   if(query_parameters->get('order') eq 'name') {
     $order = { $order_key => ['name', 'participant'] };
   };
-  my $beerscores = rset('BeerScore')->search({ tasting => $tasting->id }, { order_by => $order });
+  my $search = { tasting => $tasting->id };
+  my $selected_beers = {};
+  if(query_parameters->get('beers')) {
+    my @b = ();
+    foreach my $beer (query_parameters->get_all('beers')) {
+      if($beer =~ /^\d+$/) {
+        push(@b, $beer);
+        $selected_beers->{$beer} = 1;
+      };
+    };
+    $search->{'number'} = { in => \@b };
+  } else {
+    foreach my $beer ($tasting->beers) {
+      $selected_beers->{$beer->number} = 1;
+    };
+  };
+  my $beerscores = rset('BeerScore')->search($search, { order_by => $order });
   my @participants = $beerscores->search({}, { columns => ['participant', 'participant_name'], distinct => 1 });
   my @scores;
   my $id = -1;
@@ -87,7 +103,18 @@ get '/result/:year' => sub {
       @scores = sort { $b->{'std'} cmp $a->{'std'} } @scores;
     };
   };
-  template 'result', { year => route_parameters->get('year'), beerscores => \@scores, participants => \@participants, order => $order->{$order_key}, order_key => $order_key };
+  my $beers = [];
+  my $beers_param = "";
+  foreach my $beer ($tasting->beers) {
+    my $e = {
+      name => $beer->name,
+      number => $beer->number,
+      check => $selected_beers->{$beer->number} == 1 ? 'checked="checked"' : '',
+    };
+    push(@{ $beers }, $e);
+    $beers_param .= '&beers=' . $beer->number if $selected_beers->{$beer->number};
+  };
+  template 'result', { tasting => $tasting, beers_param => $beers_param, beers => $beers, beerscores => \@scores, participants => \@participants, order => $order->{$order_key}, order_key => $order_key };
 };
 
 get '/rate/:year' => needs login => sub {

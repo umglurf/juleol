@@ -1,5 +1,5 @@
 <div id="content">
-<h1>Juleølsmaking result <% year %></h1>
+<h1>Juleølsmaking result <% tasting.year %></h1>
 
 <table>
 <thead>
@@ -11,11 +11,11 @@
 <% FOREACH participant IN participants %>
 <th><% participant.participant_name %></th>
 <% END %>
-<th><a href="?order=number<% IF order.0 == 'number' && order_key == '-asc' %>&desc=1<% END %>">Beer Number</a></th>
-<th><a href="?order=name<% IF order.0 == 'name' && order_key == '-asc' %>&desc=1<% END %>">Beer name</a></th>
-<th><a href="?order=sum<% IF order.0 == 'sum' && order_key == '-asc' %>&desc=1<% END %>">Sum</a></th>
-<th><a href="?order=avg<% IF order.0 == 'avg' && order_key == '-asc' %>&desc=1<% END %>">Average</a></th>
-<th><a href="?order=std<% IF order.0 == 'std' && order_key == '-asc' %>&desc=1<% END %>">Standard deviance</a></th>
+<th><a href="?order=number<% IF order.0 == 'number' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Beer Number</a></th>
+<th><a href="?order=name<% IF order.0 == 'name' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Beer name</a></th>
+<th><a href="?order=sum<% IF order.0 == 'sum' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Sum</a></th>
+<th><a href="?order=avg<% IF order.0 == 'avg' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Average</a></th>
+<th><a href="?order=std<% IF order.0 == 'std' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Standard deviance</a></th>
 <% FOREACH participant IN participants %>
 <th><% participant.participant_name %></th>
 <% END %>
@@ -43,6 +43,21 @@
 </tbody>
 
 </table>
+
+<form method="get">
+<ol>
+<% FOREACH beer IN beers %>
+<li>
+<label for="beers<% beer.number %>"><% beer.name %></label>
+<input type="checkbox" name="beers" value="<% beer.number %>" id="beers<% beer.number %>" <% beer.check %>/>
+</li>
+<% END %>
+</ol>
+<p>
+<input type="submit" value="Filter beers"/>
+</p>
+</form>
+
 
 <p><a href="/">Back</a></p>
 
