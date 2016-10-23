@@ -82,25 +82,25 @@ get '/result/:year' => sub {
   if(query_parameters->get('order') eq 'sum') {
     $order = { $order_key => ['sum', 'participant'] };
     if($order_key eq '-asc') {
-      @scores = sort { $a->{'sum'} cmp $b->{'sum'} } @scores;
+      @scores = sort { $a->{'sum'} <=> $b->{'sum'} } @scores;
     } else {
-      @scores = sort { $b->{'sum'} cmp $a->{'sum'} } @scores;
+      @scores = sort { $b->{'sum'} <=> $a->{'sum'} } @scores;
     };
   };
   if(query_parameters->get('order') eq 'avg') {
     $order = { $order_key => ['avg', 'participant'] };
     if($order_key eq '-asc') {
-      @scores = sort { $a->{'avg'} cmp $b->{'avg'} } @scores;
+      @scores = sort { $a->{'avg'} <=> $b->{'avg'} } @scores;
     } else {
-      @scores = sort { $b->{'avg'} cmp $a->{'avg'} } @scores;
+      @scores = sort { $b->{'avg'} <=> $a->{'avg'} } @scores;
     };
   };
   if(query_parameters->get('order') eq 'std') {
     $order = { $order_key => ['std', 'participant'] };
     if($order_key eq '-asc') {
-      @scores = sort { $a->{'std'} cmp $b->{'std'} } @scores;
+      @scores = sort { $a->{'std'} <=> $b->{'std'} } @scores;
     } else {
-      @scores = sort { $b->{'std'} cmp $a->{'std'} } @scores;
+      @scores = sort { $b->{'std'} <=> $a->{'std'} } @scores;
     };
   };
   my $beers = [];
