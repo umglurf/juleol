@@ -64,7 +64,7 @@ sub add_data {
   $data->getline();
   my $i = 1;
   while(my $line = $data->getline()) {
-    my @chars = split(//, $line);
+    my @chars = split(/\s*/, $line);
     foreach my $participant (@participants) {
       my $look = shift @chars;
       my $smell = shift @chars;
