@@ -1,0 +1,18 @@
+<div id="content">
+<h1>Juleølsmaking admin</h1>
+
+<% IF error %>
+<p class="error">
+<% error %>
+</p>
+<% END %>
+
+<% IF message %>
+<p class="message">
+<% message %>
+</p>
+<% END %>
+
+<p><a href="/admin/<% tasting.year %>">Back</a></p>
+
+</div>
