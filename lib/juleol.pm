@@ -58,7 +58,7 @@ get '/result/:year' => sub {
       if($id > 0) {
         $entry->{'avg'} = sprintf("%.2f", $entry->{'sum'} / scalar(@{ $entry->{'participants'} }));
         $entry->{'std'} = sprintf("%.2f", stddev($entry->{'participants'}));
-        my @dev = map { abs($_ - $entry->{'avg'}) } @{ $entry->{'participants'} };
+        my @dev = map { sprintf("%.2f", abs($_ - $entry->{'avg'})) } @{ $entry->{'participants'} };
         $entry->{'dev'} = \@dev;
         push(@scores, $entry);
       };
@@ -76,7 +76,7 @@ get '/result/:year' => sub {
   };
   $entry->{'avg'} = sprintf("%.2f", $entry->{'sum'} / scalar(@{ $entry->{'participants'} }));
   $entry->{'std'} = sprintf("%.2f", stddev($entry->{'participants'}));
-  my @dev = map { abs($_ - $entry->{'avg'}) } @{ $entry->{'participants'} };
+  my @dev = map { sprintf("%.2f", abs($_ - $entry->{'avg'})) } @{ $entry->{'participants'} };
   $entry->{'dev'} = \@dev;
   push(@scores, $entry);
   if(query_parameters->get('order') eq 'sum') {
