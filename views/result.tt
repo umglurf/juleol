@@ -4,6 +4,10 @@
 <table>
 <thead>
 <tr>
+<th colspan="<% participants.size %>">Participants</th>
+<th colspan="5">&nbsp;</th>
+<th colspan="<% participants.size %>">Deviation from average</th>
+<tr>
 <% FOREACH participant IN participants %>
 <th><% participant.participant_name %></th>
 <% END %>
