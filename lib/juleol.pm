@@ -11,11 +11,6 @@ use Juleol::Admin;
 
 our $VERSION = '0.1';
 
-#my $scores = rset('BeerScore')->search({ tasting => 10 }, { select => { sum => 'score' }, group_by => [ 'id' ] });
-#while(my $score = $scores->next) {
-#  print $score->name . ' ' . $score->score . "\n";
-#};
-
 prefix '/';
 
 get '/' => sub {
