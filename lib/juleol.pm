@@ -128,7 +128,7 @@ get '/rate/:year' => needs login => sub {
     status 'error';
     return "This year is not a valid year for your user";
   };
-  template 'rating', { tasting => $tasting };
+  template 'rating', { tasting => $tasting, participant => $participant };
 };
 
 put '/rate/:year/:beer' => needs login => sub {

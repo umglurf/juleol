@@ -28,7 +28,7 @@ function update_rating(obj, num) {
 </script>
 
 <div id="content">
-    <h1>Juleøl <% tasting.year %> for <% session.user %></h1>
+    <h1>Juleøl <% tasting.year %> for <% participant.name %></h1>
     <ol class="ratinglist">
     <% i = 0 %>
     <% FOREACH beer IN tasting.beers %>
