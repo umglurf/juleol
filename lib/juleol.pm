@@ -217,13 +217,15 @@ get '/logout' => sub {
 sub _is_valid {
   my ($user, $password, $year) = @_;
   return 0 unless $year =~ /^2\d{3}$/;
+  my $tasting = rset('Tasting')->search({ year => $year })->single;
+  return 0 unless $tasting;
   my $participant = rset('Participant')->search(
     {
       'name' => $user,
-      'tasting.year' => 'year'
+      'tasting' => $tasting->id
     },
-    { join => 'tasting' }
   )->single;
+  print "part=" . $participant->name ."\n";
   return 0 unless $participant;
   return passphrase($password)->matches($participant->password);
 };
