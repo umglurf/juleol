@@ -4,9 +4,9 @@
   <meta charset="<% settings.charset %>">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>juleol</title>
-  <link rel="stylesheet" href="<% request.uri_base %>/css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 
-  <script type="text/javascript" src="<% request.uri_base %>/javascripts/jquery.js"></script>
+  <script type="text/javascript" src="/javascripts/jquery.js"></script>
 
 </head>
 <body>
