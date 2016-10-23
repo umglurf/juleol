@@ -2,16 +2,17 @@ package Juleol::Admin;
 use Dancer2 appname => 'juleol';
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::Passphrase;
+use Dancer2::Plugin::Auth::Tiny;
 use Try::Tiny;
 
 prefix '/admin';
 
-get '/' => sub {
+get '/' => needs login => sub {
   my @tastings = rset('Tasting')->search({}, { order_by => ['year'] });
   template 'Admin/index', { tastings => \@tastings };
 };
 
-post '/' => sub {
+post '/' => needs login => sub {
   my $error = validate_create_tasting();
   my $message = undef;
   unless($error) {
@@ -29,7 +30,7 @@ post '/' => sub {
   template 'Admin/index', { tastings => $tastings, error => $error, message => $message };
 };
 
-get '/:year' => sub {
+get '/:year' => needs login => sub {
   my $tasting = rset('Tasting')->find({ year => route_parameters->get('year') });
   unless($tasting) {
     status 'not_found';
@@ -38,7 +39,7 @@ get '/:year' => sub {
   template 'Admin/tasting', { tasting => $tasting };
 };
 
-put '/beer/:id' => sub {
+put '/beer/:id' => needs login => sub {
   unless(body_parameters->get('name')) {
     status 'bad request';
     send_as JSON => { message => "Missing parameter name" };
@@ -57,7 +58,7 @@ put '/beer/:id' => sub {
   send_as JSON => { message => "Name updated" };
 };
 
-post '/participant' => sub {
+post '/participant' => needs login => sub {
   my $error = validate_create_participant();
   if($error) {
     status 'bad request';
@@ -83,7 +84,7 @@ post '/participant' => sub {
   template 'Admin/participant', { tasting => $tasting, error => $error, message => $message };
 };
 
-put '/participant/:id' => sub {
+put '/participant/:id' => needs login => sub {
   unless(body_parameters->get('password')) {
     status 'bad request';
     send_as JSON => { message => "Missing parameter password" };
