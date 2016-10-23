@@ -123,7 +123,7 @@ get '/rate/:year' => needs login => sub {
     status 'not_found';
     return "No such year";
   };
-  my $participant = rset('Participant')->search({ name => session('user'), tasting => $tasting->id })->single;
+  my $participant = rset('Participant')->search({ id => session('user'), tasting => $tasting->id })->single;
   unless($participant) {
     status 'error';
     return "This year is not a valid year for your user";
@@ -144,7 +144,7 @@ put '/rate/:year/:beer' => needs login => sub {
     status 'not found';
     send_as JSON => { message => 'No such beer' };
   };
-  my $participant = rset('Participant')->search({ name => session('user'), tasting => $beer->tasting->id })->single;
+  my $participant = rset('Participant')->search({ id => session('user'), tasting => $beer->tasting->id })->single;
   unless($participant) {
     status 'error';
     send_as JSON => { message => "Unable to find participant" };
@@ -226,8 +226,9 @@ get '/login' => sub {
 };
 
 post '/login' => sub {
-  if ( _is_valid( body_parameters->get('user'), body_parameters->get('password'), body_parameters->get('year') ) ) {
-    session user => body_parameters->get('user');
+  my $user = _check_user( body_parameters->get('user'), body_parameters->get('password'), body_parameters->get('year') ); 
+  if($user >= 0) {
+    session user => $user;
     return redirect body_parameters->get('return_url') || '/';
   }
   else {
@@ -241,11 +242,11 @@ get '/logout' => sub {
   redirect '/';
 };
 
-sub _is_valid {
+sub _check_user {
   my ($user, $password, $year) = @_;
-  return 0 unless $year =~ /^2\d{3}$/;
+  return -1 unless $year =~ /^2\d{3}$/;
   my $tasting = rset('Tasting')->search({ year => $year })->single;
-  return 0 unless $tasting;
+  return -1 unless $tasting;
   my $participant = rset('Participant')->search(
     {
       'name' => $user,
@@ -253,8 +254,12 @@ sub _is_valid {
     },
   )->single;
   print "part=" . $participant->name ."\n";
-  return 0 unless $participant;
-  return passphrase($password)->matches($participant->password);
+  return -1 unless $participant;
+  try {
+    return $participant->id if passphrase($password)->matches($participant->password);
+  } catch {
+    return -1;
+  };
 };
 
 true;
