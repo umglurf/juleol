@@ -33,6 +33,8 @@ SELECT s.id AS id,
     SELECT beers.id, beers.tasting, number, name, score, participant AS p_id FROM beers JOIN score_taste ON score_taste.beer = beers.id
     UNION ALL
     SELECT beers.id, beers.tasting, number, name, score, participant AS p_id FROM beers JOIN score_aftertaste ON score_aftertaste.beer = beers.id
+    UNION ALL
+    SELECT beers.id, beers.tasting, number, name, score, participant AS p_id FROM beers JOIN score_xmas ON score_xmas.beer = beers.id
   ) s JOIN participants AS p on p.id = s.p_id
   GROUP BY p.id, s.name
 	");

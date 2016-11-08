@@ -217,6 +217,23 @@ put '/rate/:year/:beer' => needs login => sub {
       send_as JSON => { message => "Unable to create or update aftertaste" };
     };
   };
+  if(body_parameters->get('xmas')) {
+    unless(body_parameters->get('xmas') =~ /^\d+$/ && body_parameters->get('xmas') >= 0 && body_parameters->get('xmas') <= 3) {
+      status 'error';
+      send_as JSON => { message => "Invalid value for xmas" };
+    };
+    try {
+      rset('ScoreXmas')->update_or_create({
+          score => body_parameters->get('xmas'),
+          tasting => $beer->tasting->id,
+          beer => $beer->id,
+          participant => $participant->id
+        }, { key => 'taste_participant_beer' });
+    } catch {
+      status 'error';
+      send_as JSON => { message => "Unable to create or update xmas" };
+    };
+  };
   send_as JSON => { message => "Result updated" };
 };
 

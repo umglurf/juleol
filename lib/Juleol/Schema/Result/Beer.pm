@@ -90,6 +90,22 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<number>
+
+=over 4
+
+=item * L</number>
+
+=item * L</tasting>
+
+=back
+
+=cut
+
+__PACKAGE__->add_unique_constraint("number", ["number", "tasting"]);
+
 =head1 RELATIONS
 
 =head2 score_aftertastes
@@ -152,6 +168,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 score_xmas
+
+Type: has_many
+
+Related object: L<Juleol::Schema::Result::ScoreXmas>
+
+=cut
+
+__PACKAGE__->has_many(
+  "score_xmas",
+  "Juleol::Schema::Result::ScoreXmas",
+  { "foreign.beer" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 tasting
 
 Type: belongs_to
@@ -168,8 +199,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-10-22 06:45:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:AUNVIgSj1MeOC+lrfmhYvA
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-11-08 19:03:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3FBgMEk1lncOQxy28o9zoQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

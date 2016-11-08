@@ -4,6 +4,7 @@ function update_rating(obj, num) {
     var smell = $(obj).parent().parent().find("[name=\"smell" + num + "\"]")[0].value;
     var taste = $(obj).parent().parent().find("[name=\"taste" + num + "\"]")[0].value;
     var aftertaste = $(obj).parent().parent().find("[name=\"aftertaste" + num + "\"]")[0].value;
+    var xmas = $(obj).parent().parent().find("[name=\"xmas" + num + "\"]")[0].value;
     $(obj).siblings("img:nth-of-type(1)").show();
     var url = '/rate/<% tasting.year %>/' + num;
     $.ajax(url, {
@@ -13,6 +14,7 @@ function update_rating(obj, num) {
         "smell": smell,
         "taste": taste,
         "aftertaste": aftertaste,
+        "xmas": xmas,
       },
       success: function(data, textStatus, xhr) {
         $(obj).siblings("img:nth-of-type(1)").hide();
@@ -38,6 +40,7 @@ function update_rating(obj, num) {
           <li><label for="smell<% beer.number %>">Smell</label><input type="number" min="0" max="3" name="smell<% beer.number %>" id="smell<% beer.number %>" value="<% IF beer.score_smells.first.score %><% beer.score_smells.first.score %><% END %>"/></li>
           <li><label for="taste<% beer.number %>">Taste</label><input type="number" min="0" max="9" name="taste<% beer.number %>" id="taste<% beer.number %>" value="<% IF beer.score_tastes.first.score %><% beer.score_tastes.first.score %><% END %>"/></li>
           <li><label for="aftertaste<% beer.number %>">Aftertaste</label><input type="number" min="0" max="5" name="aftertaste<% beer.number %>" id="aftertaste<% beer.number %>" value="<% IF beer.score_aftertastes.first.score %><% beer.score_aftertastes.first.score %><% END %>"/></li>
+          <li><label for="xmas<% beer.number %>">Xmas</label><input type="number" min="0" max="3" name="xmas<% beer.number %>" id="xmas<% beer.number %>" value="<% IF beer.score_xmass.first.score %><% beer.score_xmass.first.score %><% END %>"/></li>
           <li>
           <input type="submit" value="Update result for beer <% beer.number %>" onClick="update_rating(this, <% beer.number %>)"/>
           <img src="<% request.uri_base %>/images/wait18trans.gif"/ style="display:none">

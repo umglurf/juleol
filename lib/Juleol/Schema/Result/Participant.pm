@@ -92,25 +92,13 @@ __PACKAGE__->set_primary_key("id");
 
 =item * L</name>
 
-=back
-
-=cut
-
-__PACKAGE__->add_unique_constraint("name", ["name"]);
-
-=head2 C<name_2>
-
-=over 4
-
-=item * L</name>
-
 =item * L</tasting>
 
 =back
 
 =cut
 
-__PACKAGE__->add_unique_constraint("name_2", ["name", "tasting"]);
+__PACKAGE__->add_unique_constraint("name", ["name", "tasting"]);
 
 =head1 RELATIONS
 
@@ -174,6 +162,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 score_xmas
+
+Type: has_many
+
+Related object: L<Juleol::Schema::Result::ScoreXmas>
+
+=cut
+
+__PACKAGE__->has_many(
+  "score_xmas",
+  "Juleol::Schema::Result::ScoreXmas",
+  { "foreign.participant" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 tasting
 
 Type: belongs_to
@@ -190,8 +193,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-10-22 11:53:48
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:OZ0u0oKtsOKdVpRhrTMLNg
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-11-08 19:03:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0lXlH0NoHs6r7AWolrJpag
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -168,9 +168,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 score_xmas
 
-# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-10-22 06:45:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9YMN8mR+OcOPD/1lpzLePw
+Type: has_many
+
+Related object: L<Juleol::Schema::Result::ScoreXmas>
+
+=cut
+
+__PACKAGE__->has_many(
+  "score_xmas",
+  "Juleol::Schema::Result::ScoreXmas",
+  { "foreign.tasting" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07046 @ 2016-11-08 19:03:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pNVHas1RDmXQS6HyOgLGDg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
