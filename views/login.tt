@@ -11,7 +11,7 @@
     <label for="year">Year</label>
     <select name="year" id="year">
     <% FOREACH tasting IN tastings %>
-    <option value="<% tasting.year %>"><% tasting.year %></option>
+    <option value="<% tasting.year %>"<% IF year == tasting.year %>selected="selected"<% END %>><% tasting.year %></option>
     <% END %>
     </select>
     <label for="user">Name</label><input type="text" name="user" id="user"/>

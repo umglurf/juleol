@@ -273,7 +273,11 @@ put '/rate/:year/:beer' => needs login => sub {
 
 get '/login' => sub {
   my @tastings = rset('Tasting')->search({}, { order_by => ['year'] });
-  template 'login' => { tastings => \@tastings, return_url => query_parameters->get('return_url') };
+  my $year = '';
+  if(query_parameters->get('return_url') =~ /rate\/(\d+)$/) {
+    $year = $1;
+  };
+  template 'login' => { tastings => \@tastings, year => $year, return_url => query_parameters->get('return_url') };
 };
 
 post '/login' => sub {
