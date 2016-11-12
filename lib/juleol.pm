@@ -186,7 +186,7 @@ put '/rate/:year/:beer' => needs login => sub {
   if(body_parameters->get('look')) {
     unless(body_parameters->get('look') =~ /^\d+$/ && body_parameters->get('look') >= 0 && body_parameters->get('look') <= 3) {
       status 'error';
-      send_as JSON => { message => "Invalid value for look" };
+      send_as JSON => { message => "Look is outside valid range (0-3)" };
     };
     try {
       rset('ScoreLooks')->update_or_create({
@@ -203,7 +203,7 @@ put '/rate/:year/:beer' => needs login => sub {
   if(body_parameters->get('smell')) {
     unless(body_parameters->get('smell') =~ /^\d+$/ && body_parameters->get('smell') >= 0 && body_parameters->get('smell') <= 3) {
       status 'error';
-      send_as JSON => { message => "Invalid value for smell" };
+      send_as JSON => { message => "Smell is outside valid range (0-3)" };
     };
     try {
       rset('ScoreSmells')->update_or_create({
@@ -231,13 +231,13 @@ put '/rate/:year/:beer' => needs login => sub {
         }, { key => 'taste_participant_beer' });
     } catch {
       status 'error';
-      send_as JSON => { message => "Unable to create or update taste" };
+      send_as JSON => { message => "Taste is outside valid range (0-9)" };
     };
   };
   if(body_parameters->get('aftertaste')) {
     unless(body_parameters->get('aftertaste') =~ /^\d+$/ && body_parameters->get('aftertaste') >= 0 && body_parameters->get('aftertaste') <= 5) {
       status 'error';
-      send_as JSON => { message => "Invalid value for aftertaste" };
+      send_as JSON => { message => "Aftertaste is outside valid range (0-5)" };
     };
     try {
       rset('ScoreAftertastes')->update_or_create({
@@ -254,7 +254,7 @@ put '/rate/:year/:beer' => needs login => sub {
   if(body_parameters->get('xmas')) {
     unless(body_parameters->get('xmas') =~ /^\d+$/ && body_parameters->get('xmas') >= 0 && body_parameters->get('xmas') <= 3) {
       status 'error';
-      send_as JSON => { message => "Invalid value for xmas" };
+      send_as JSON => { message => "Xmas is outside valid range (0-3)" };
     };
     try {
       rset('ScoreXmas')->update_or_create({
