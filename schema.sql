@@ -1,3 +1,11 @@
+CREATE TABLE admins (
+  id int unsigned not null auto_increment,
+  name varchar(255) not null,
+  password varchar(255) not null,
+  PRIMARY KEY(id),
+  UNIQUE(name)
+);
+
 CREATE TABLE tastings (
   id int unsigned not null auto_increment,
   year int unsigned not null,

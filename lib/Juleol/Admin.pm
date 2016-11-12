@@ -5,14 +5,48 @@ use Dancer2::Plugin::Passphrase;
 use Dancer2::Plugin::Auth::Tiny;
 use Try::Tiny;
 
+Dancer2::Plugin::Auth::Tiny->extend(
+  admin => sub {
+    my ($dsl, $coderef) = @_;
+    return sub {
+      if ( $dsl->app->session->read("is_admin") ) {
+        goto $coderef;
+      } else {
+        $dsl->app->redirect('/admin/login');
+      };
+    }
+  }
+);
+
 prefix '/admin';
 
-get '/' => needs login => sub {
+get '/login' => sub {
+  template 'Admin/login';
+};
+
+post '/login' => sub {
+  my $admin = _check_admin( body_parameters->get('user'), body_parameters->get('password') ); 
+  if($admin >= 0) {
+    session is_admin => 1;
+    return redirect '/admin/';
+  }
+  else {
+    template 'Admin/login' => { error => "invalid username or password" };
+  }
+};
+
+get '/logout' => sub {
+  app->destroy_session;
+  redirect '/admin/';
+};
+
+
+get '/' => needs admin => sub {
   my @tastings = rset('Tasting')->search({}, { order_by => ['year'] });
   template 'Admin/index', { tastings => \@tastings };
 };
 
-post '/' => needs login => sub {
+post '/' => needs admin => sub {
   my $error = validate_create_tasting();
   my $message = undef;
   unless($error) {
@@ -30,7 +64,7 @@ post '/' => needs login => sub {
   template 'Admin/index', { tastings => $tastings, error => $error, message => $message };
 };
 
-get '/:year' => needs login => sub {
+get '/:year' => needs admin => sub {
   my $tasting = rset('Tasting')->find({ year => route_parameters->get('year') });
   unless($tasting) {
     status 'not_found';
@@ -39,7 +73,7 @@ get '/:year' => needs login => sub {
   template 'Admin/tasting', { tasting => $tasting };
 };
 
-put '/beer/:id' => needs login => sub {
+put '/beer/:id' => needs admin => sub {
   unless(body_parameters->get('name')) {
     status 'bad request';
     send_as JSON => { message => "Missing parameter name" };
@@ -58,7 +92,7 @@ put '/beer/:id' => needs login => sub {
   send_as JSON => { message => "Name updated" };
 };
 
-post '/participant' => needs login => sub {
+post '/participant' => needs admin => sub {
   my $error = validate_create_participant();
   if($error) {
     status 'bad request';
@@ -84,7 +118,7 @@ post '/participant' => needs login => sub {
   template 'Admin/participant', { tasting => $tasting, error => $error, message => $message };
 };
 
-put '/participant/:id' => needs login => sub {
+put '/participant/:id' => needs admin => sub {
   unless(body_parameters->get('password')) {
     status 'bad request';
     send_as JSON => { message => "Missing parameter password" };
@@ -103,6 +137,23 @@ put '/participant/:id' => needs login => sub {
   };
   send_as JSON => { message => "Password updated" };
 
+};
+
+sub _check_admin {
+  my ($user, $password) = @_;
+  my $admin = rset('Admin')->search(
+    {
+      'name' => $user,
+    },
+  )->single;
+  return -1 unless $admin;
+  my $id = -1;
+  try {
+    $id = $admin->id if passphrase($password)->matches($admin->password);
+  } catch {
+    $id = -1;
+  };
+  return $id;
 };
 
 sub validate_create_tasting {

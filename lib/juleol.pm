@@ -304,13 +304,14 @@ sub _check_user {
       'tasting' => $tasting->id
     },
   )->single;
-  print "part=" . $participant->name ."\n";
   return -1 unless $participant;
+  my $id = -1;
   try {
-    return $participant->id if passphrase($password)->matches($participant->password);
+    $id = $participant->id if passphrase($password)->matches($participant->password);
   } catch {
-    return -1;
+    $id = -1;
   };
+  return $id;
 };
 
 true;

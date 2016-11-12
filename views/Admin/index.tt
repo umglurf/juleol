@@ -29,4 +29,6 @@
 </p>
 </form>
 </ul>
+
+<p><a href="/admin/logout">Logout</a></p>
 </div>
