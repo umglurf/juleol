@@ -146,37 +146,12 @@ get '/rate/:year' => needs login => sub {
     status 'error';
     return "This year is not a valid year for your user";
   };
-  template 'rating', { tasting => $tasting, participant => $participant };
+  my $beers = _get_beer_scores($participant->id);
+  template 'rating', { tasting => $tasting, participant => $participant, beers => $beers };
 };
 
 get '/result/participant/:id' => sub {
-  my $beers = [];
-  #foreach my $beer (rset('Participant')->search({ 'me.id' => route_parameters->get('id') }, { join => { tasting => ['beers'] }, '+colums' => ['beers.number', 'beers.name'], order_by => { '-asc' => 'beers.number'} })) {
-  my $tasting =  rset('Participant')->search_related('tasting', { 'me.id' => route_parameters->get('id') });
-  foreach my $beer ($tasting->search_related('beers', {}, { order => 'beers.number' })) {
-    $beers->[$beer->number] = {};
-    $beers->[$beer->number]->{'name'} = $beer->name;
-    $beers->[$beer->number]->{'look'} = '';
-    $beers->[$beer->number]->{'smell'} = '';
-    $beers->[$beer->number]->{'taste'} = '';
-    $beers->[$beer->number]->{'aftertaste'} = '';
-    $beers->[$beer->number]->{'xmas'} = '';
-  };
-  foreach my $s (rset('Participant')->search_related('score_looks', { 'me.id' => route_parameters->get('id')}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
-    $beers->[$s->beer->number]->{'look'} = $s->score;
-  };
-  foreach my $s (rset('Participant')->search_related('score_smells', { 'me.id' => route_parameters->get('id')}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
-    $beers->[$s->beer->number]->{'smell'} = $s->score;
-  };
-  foreach my $s (rset('Participant')->search_related('score_tastes', { 'me.id' => route_parameters->get('id')}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
-    $beers->[$s->beer->number]->{'taste'} = $s->score;
-  };
-  foreach my $s (rset('Participant')->search_related('score_aftertastes', { 'me.id' => route_parameters->get('id')}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
-    $beers->[$s->beer->number]->{'aftertaste'} = $s->score;
-  };
-  foreach my $s (rset('Participant')->search_related('score_xmas', { 'me.id' => route_parameters->get('id')}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
-    $beers->[$s->beer->number]->{'xmas'} = $s->score;
-  };
+  my $beers = _get_beer_scores(route_parameters->get('id'));
   send_as JSON => { beers => $beers };
 };
 
@@ -331,6 +306,38 @@ sub _check_user {
     $id = -1;
   };
   return $id;
+};
+
+sub _get_beer_scores {
+  my $id = shift;
+  my $beers = [];
+  my $tasting =  rset('Participant')->search_related('tasting', { 'me.id' => $id });
+  foreach my $beer ($tasting->search_related('beers', {}, { order => 'beers.number' })) {
+    $beers->[$beer->number] = {};
+    $beers->[$beer->number]->{'name'} = $beer->name;
+    $beers->[$beer->number]->{'look'} = '';
+    $beers->[$beer->number]->{'smell'} = '';
+    $beers->[$beer->number]->{'taste'} = '';
+    $beers->[$beer->number]->{'aftertaste'} = '';
+    $beers->[$beer->number]->{'xmas'} = '';
+  };
+  foreach my $s (rset('Participant')->search_related('score_looks', { 'me.id' => $id}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
+    $beers->[$s->beer->number]->{'look'} = $s->score;
+  };
+  foreach my $s (rset('Participant')->search_related('score_smells', { 'me.id' => $id}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
+    $beers->[$s->beer->number]->{'smell'} = $s->score;
+  };
+  foreach my $s (rset('Participant')->search_related('score_tastes', { 'me.id' => $id}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
+    $beers->[$s->beer->number]->{'taste'} = $s->score;
+  };
+  foreach my $s (rset('Participant')->search_related('score_aftertastes', { 'me.id' => $id}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
+    $beers->[$s->beer->number]->{'aftertaste'} = $s->score;
+  };
+  foreach my $s (rset('Participant')->search_related('score_xmas', { 'me.id' => $id}, { join => ['beer'], '+columns' => ['beer.number', 'beer.name'], order_by => { '-asc' => 'beer.number'} })) {
+    $beers->[$s->beer->number]->{'xmas'} = $s->score;
+  };
+
+  return $beers;
 };
 
 true;

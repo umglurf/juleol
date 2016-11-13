@@ -1,10 +1,10 @@
 <script type="text/javascript">
 function update_rating(obj, num) {
-    var look = $(obj).parent().parent().find("[name=\"look" + num + "\"]")[0].value;
-    var smell = $(obj).parent().parent().find("[name=\"smell" + num + "\"]")[0].value;
-    var taste = $(obj).parent().parent().find("[name=\"taste" + num + "\"]")[0].value;
-    var aftertaste = $(obj).parent().parent().find("[name=\"aftertaste" + num + "\"]")[0].value;
-    var xmas = $(obj).parent().parent().find("[name=\"xmas" + num + "\"]")[0].value;
+    var look = $("#look" + num)[0].value;
+    var smell = $("#smell" + num)[0].value;
+    var taste = $("#taste" + num)[0].value;
+    var aftertaste = $("#aftertaste" + num)[0].value;
+    var xmas = $("#xmas" + num)[0].value;
     $(obj).siblings("img:nth-of-type(1)").show();
     var url = '/rate/<% tasting.year %>/' + num;
     $.ajax(url, {
@@ -40,21 +40,38 @@ function input_focus(obj, number) {
     <h1>Juleøl <% tasting.year %> for <% participant.name %></h1>
     <ol class="ratinglist">
     <% i = 0 %>
-    <% FOREACH beer IN tasting.beers %>
+    <% FOREACH beer IN beers %>
+    <% IF beer %>
       <li>
         <ul>
-          <li><label for="look<% beer.number %>">Look (0-3)</label><input onfocus="input_focus(this, <% beer.number %>)" type="number" min="0" max="3" name="look<% beer.number %>" id="look<% beer.number %>" value="<% IF beer.score_looks.first.score %><% beer.score_looks.first.score %><% END %>"/></li>
-          <li><label for="smell<% beer.number %>">Smell (0-3)</label><input onfocus="input_focus(this, <% beer.number %>)" type="number" min="0" max="3" name="smell<% beer.number %>" id="smell<% beer.number %>" value="<% IF beer.score_smells.first.score %><% beer.score_smells.first.score %><% END %>"/></li>
-          <li><label for="taste<% beer.number %>">Taste (0-9)</label><input onfocus="input_focus(this, <% beer.number %>)" type="number" min="0" max="9" name="taste<% beer.number %>" id="taste<% beer.number %>" value="<% IF beer.score_tastes.first.score %><% beer.score_tastes.first.score %><% END %>"/></li>
-          <li><label for="aftertaste<% beer.number %>">Aftertaste (0-5)</label><input onfocus="input_focus(this, <% beer.number %>)" type="number" min="0" max="5" name="aftertaste<% beer.number %>" id="aftertaste<% beer.number %>" value="<% IF beer.score_aftertastes.first.score %><% beer.score_aftertastes.first.score %><% END %>"/></li>
-          <li><label for="xmas<% beer.number %>">Xmas (0-3)</label><input onfocus="input_focus(this, <% beer.number %>)" type="number" min="0" max="3" name="xmas<% beer.number %>" id="xmas<% beer.number %>" value="<% IF beer.score_xmass.first.score %><% beer.score_xmass.first.score %><% END %>"/></li>
           <li>
-          <input type="submit" value="Update result for beer <% beer.number %>" onClick="update_rating(this, <% beer.number %>)"/>
-          <img src="<% request.uri_base %>/images/wait18trans.gif" style="display:none" id="wait<% beer.number %>" />
-          <img src="<% request.uri_base %>/images/Green_tick.svg" height="20" width="20" style="display:none" id="tick<% beer.number %>" />
+            <label for="look<% loop.index %>">Look (0-3)</label>
+            <input onfocus="input_focus(this, <% loop.index %>)" type="number" min="0" max="3" name="look<% beer.number %>" id="look<% loop.index %>" value="<% beer.look %>"/>
+          </li>
+          <li>
+            <label for="smell<% loop.index %>">Smell (0-3)</label>
+            <input onfocus="input_focus(this, <% loop.index %>)" type="number" min="0" max="3" name="smell<% beer.number %>" id="smell<% loop.index %>" value="<% beer.smell %>"/>
+          </li>
+          <li>
+            <label for="taste<% loop.index %>">Taste (0-9)</label>
+            <input onfocus="input_focus(this, <% loop.index %>)" type="number" min="0" max="9" name="taste<% beer.number %>" id="taste<% loop.index %>" value="<% beer.taste %>"/>
+          </li>
+          <li>
+            <label for="aftertaste<% loop.index %>">Aftertaste (0-5)</label>
+            <input onfocus="input_focus(this, <% loop.index %>)" type="number" min="0" max="5" name="aftertaste<% beer.number %>" id="aftertaste<% loop.index %>" value="<% beer.aftertaste %>"/>
+          </li>
+          <li>
+            <label for="xmas<% loop.index %>">Xmas (0-3)</label>
+            <input onfocus="input_focus(this, <% loop.index %>)" type="number" min="0" max="3" name="xmas<% beer.number %>" id="xmas<% loop.index %>" value="<% beer.xmas %>"/>
+          </li>
+          <li>
+            <input type="submit" value="Update result for beer <% loop.index %>" onClick="update_rating(this, <% loop.index %>)"/>
+            <img src="<% request.uri_base %>/images/wait18trans.gif" style="display:none" id="wait<% loop.index %>" />
+            <img src="<% request.uri_base %>/images/Green_tick.svg" height="20" width="20" style="display:none" id="tick<% loop.index %>" />
           </li>
         </ul>
       </li>
+    <% END %>
     <% END %>
     </ol>
 
