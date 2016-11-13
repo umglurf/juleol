@@ -8,10 +8,10 @@ use Data::Dumper;
 my $year = shift @ARGV;
 die unless $year =~ /^2\d{3}$/;
 
-my $dbh = DBI->connect('DBI:mysql:juleol_dev', 'juleol_dev', 'hdi8qZku5SkhnToI', {mysql_enable_utf8 => 1}) or die;
+my $dbh = DBI->connect('DBI:mysql:juleol_dev', 'juleol_dev', 'XX', {mysql_enable_utf8 => 1}) or die;
 $dbh->{'RaiseError'} = 1;
 add_data($dbh, $year);
-my $dbh = DBI->connect('DBI:mysql:juleol', 'juleol', '0FbWb5FqrmlKj35N', {mysql_enable_utf8 => 1}) or die;
+my $dbh = DBI->connect('DBI:mysql:juleol', 'juleol', 'XX', {mysql_enable_utf8 => 1}) or die;
 $dbh->{'RaiseError'} = 1;
 add_data($dbh, $year);
 
