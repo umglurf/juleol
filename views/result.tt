@@ -59,7 +59,7 @@ function show_details(id) {
 <th><a href="?order=name<% IF order.0 == 'name' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Beer name</a></th>
 <th><a href="?order=sum<% IF order.0 == 'sum' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Sum</a></th>
 <th><a href="?order=avg<% IF order.0 == 'avg' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Average</a></th>
-<th><a href="?order=std<% IF order.0 == 'std' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Standard deviance</a></th>
+<th><a href="?order=std<% IF order.0 == 'std' && order_key == '-asc' %>&desc=1<% END %><% beers_param %>">Standard deviation</a></th>
 <% FOREACH participant IN participants %>
 <th><% participant.name %></th>
 <% END %>
