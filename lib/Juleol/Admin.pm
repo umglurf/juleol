@@ -68,7 +68,7 @@ post '/' => needs admin => sub {
     try {
       my $tasting = rset('Tasting')->create({ year => body_parameters->get('year') });
       for my $i (1 .. body_parameters->get('beers')) {
-        rset('Beer')->create({ number => $i, tasting => $tasting->id });
+        rset('Beer')->create({ number => $i, tasting => $tasting->id, name => "Unrevealed $i" });
       };
       $message = "Tasting created";
     } catch {
