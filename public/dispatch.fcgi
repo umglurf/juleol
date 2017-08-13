@@ -13,6 +13,6 @@ set environment => 'production';
 my $psgi = path($RealBin, '..', 'bin', 'app.psgi');
 my $app = do($psgi);
 die "Unable to read startup script: $@" if $@;
-my $server = Plack::Handler::FCGI->new(nproc => 5, detach => 1);
+my $server = Plack::Handler::FCGI->new(nproc => 5, listen => ['/var/run/fcgi.sock']);
 
 $server->run($app);
