@@ -36,7 +36,7 @@ SELECT s.id AS id,
     UNION ALL
     SELECT beers.id, beers.tasting, number, name, score, participant AS p_id FROM beers JOIN score_xmas ON score_xmas.beer = beers.id
   ) s JOIN participants AS p on p.id = s.p_id
-  GROUP BY p.id, s.name
+  GROUP BY p.id, s.name, s.id, s.number, s.tasting
 	");
 __PACKAGE__->add_columns(
   "id",
