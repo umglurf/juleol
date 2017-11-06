@@ -1,4 +1,4 @@
-FROM baseimage:latest
+FROM docker.haavard.name/baseimage:latest
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install libdancer2-perl libdancer2-plugin-database-perl libclass-dbi-mysql-perl libtest2-suite-perl libfcgi-perl libfcgi-procmanager-perl libtry-tiny-perl libstatistics-basic-perl libyaml-perl libmodule-build-perl libcrypt-eksblowfish-perl libdigest-bcrypt-perl libcrypt-rijndael-perl libdbd-sqlite3-perl libdbix-class-schema-loader-perl libdbicx-sugar-perl libsql-translator-perl libdata-entropy-perl libhttp-lite-perl libtemplate-perl libsession-storage-secure-perl libtest-mockobject-perl build-essential nginx && \
