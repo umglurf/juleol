@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 COPY . /var/www/juleol/
 WORKDIR /var/www/juleol
-RUN perl Makefile.PL && make install
+RUN perl Makefile.PL && make install && mkdir environments
 WORKDIR /
 RUN apt-get -y remove build-essential && \
     apt-get -y autoremove build-essential && \
