@@ -15,3 +15,4 @@ COPY juleol.nginx.conf /etc/nginx/sites-available/default
 RUN ln -sf /dev/stdout /var/log/nginx/access.log && \
     ln -sf /dev/stderr /var/log/nginx/error.log
 CMD ["/var/www/juleol/run.sh"]
+HEALTHCHECK --interval=5s --timeout=2s --start=10s --retries=2 CMD curl -f http://localhost/ || exit 1
