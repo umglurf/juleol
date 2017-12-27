@@ -21,10 +21,14 @@ pipeline {
     stage("Deploy") {
       steps {
         script {
-          docker.withTool('docker') {
-            docker.withServer("tcp://${env.DOCKER_HOST}:2375") {
-              sh "docker service update juleol -d --image ${env.DOCKER_REGISTRY}/juleol:${env.BUILD_NUMBER}"
-            }
+          withCredentials([string(credentialsId: 'consul', variable: 'TOKEN')]) {
+            def response = httpRequest url: "${env.CONSUL}/v1/kv/juleol/image",
+              contentType: 'TEXT_PLAIN',
+              customHeaders: [[name: "X-Consul-Token", value: env.TOKEN]],
+              httpMode: 'PUT',
+              requestBody: "${env.DOCKER_REGISTRY}/webmail:${env.BUILD_NUMBER}",
+              ignoreSslErrors: true,
+              validResponseCodes: "200"
           }
         }
       }
