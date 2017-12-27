@@ -26,7 +26,7 @@ pipeline {
               contentType: 'TEXT_PLAIN',
               customHeaders: [[name: "X-Consul-Token", value: env.TOKEN]],
               httpMode: 'PUT',
-              requestBody: "${env.DOCKER_REGISTRY}/webmail:${env.BUILD_NUMBER}",
+              requestBody: "${env.DOCKER_REGISTRY}/juleol:${env.BUILD_NUMBER}",
               ignoreSslErrors: true,
               validResponseCodes: "200"
           }
