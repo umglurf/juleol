@@ -2,7 +2,7 @@
   consul: "localhost:8500",
   jobs: [
     {
-      name: "julol",
+      name: "juleol",
       exec: "/usr/sbin/nginx",
       restarts: "unlimited",
       health: {
