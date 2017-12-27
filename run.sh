@@ -36,5 +36,4 @@ plugins:
 EOD
 fi
 
-/usr/sbin/nginx
 exec /var/www/juleol/public/dispatch.fcgi

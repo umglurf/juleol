@@ -1,0 +1,51 @@
+{
+  consul: "localhost:8500",
+  jobs: [
+    {
+      name: "{{ .APP }}",
+      exec: "/usr/sbin/nginx",
+      restarts: "unlimited",
+      health: {
+        exec: "/usr/bin/curl -o /dev/null --fail -s http://localhost",
+        interval: 10,
+        ttl: 25
+      },
+      port: "80",
+      interfaces: [
+        "inet6"
+      ],
+      when: {
+        source: "consul-agent",
+        once: "healthy"
+      }
+    },
+    {
+      name: "juleol",
+      exec: "/var/www/juleol/run.sh",
+      restarts: "unlimited",
+      when: {
+        source: "consul-agent",
+        once: "healthy"
+      },
+    },
+    {
+      name: "consul-agent",
+      exec: [
+        "consul", "agent",
+        "-data-dir=/var/lib/consul",
+        "-config-dir=/etc/consul",
+        "-bind=::",
+        "-rejoin",
+        "-retry-join", "{{ if .CONSUL }}{{ .CONSUL }}{{ else }}consul{{ end }}",
+        "-retry-max", "10",
+        "-retry-interval", "10s"
+      ],
+      health: {
+        exec: "/usr/bin/curl --fail -s http://localhost:8500",
+        interval: 5,
+        ttl: 15
+      },
+      restarts: "unlimited"
+    },
+  ],
+}
