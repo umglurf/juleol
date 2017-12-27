@@ -2,7 +2,7 @@
   consul: "localhost:8500",
   jobs: [
     {
-      name: "{{ .APP }}",
+      name: "julol",
       exec: "/usr/sbin/nginx",
       restarts: "unlimited",
       health: {
@@ -20,7 +20,7 @@
       }
     },
     {
-      name: "juleol",
+      name: "fcgi",
       exec: "/var/www/juleol/run.sh",
       restarts: "unlimited",
       when: {
