@@ -9,7 +9,7 @@ RUN apt-get update && \
 # Install Consul
 # Releases at https://releases.hashicorp.com/consul
 RUN export CONSUL_VERSION=1.0.2 \
-    && export CONSUL_CHECKSUM=418329f0f4fc3f18ef08674537b576e57df3f3026f258794b4b4b611beae6c9b
+    && export CONSUL_CHECKSUM=418329f0f4fc3f18ef08674537b576e57df3f3026f258794b4b4b611beae6c9b \
     && curl --retry 7 --fail -vo /tmp/consul.zip "https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip" \
     && echo "${CONSUL_CHECKSUM}  /tmp/consul.zip" | sha256sum -c \
     && unzip /tmp/consul -d /usr/local/bin \
