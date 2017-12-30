@@ -16,6 +16,8 @@ then
   fi
 fi
 
+/bin/rm /var/www/juleol/environments/production_local.yml
+
 if [ -n "$COOKIE_SECRET" ]
 then
   cat <<EOD >> /var/www/juleol/environments/production_local.yml
