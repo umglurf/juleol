@@ -22,7 +22,7 @@ pipeline {
       steps {
         script {
           withCredentials([string(credentialsId: 'consul', variable: 'TOKEN')]) {
-            def response = httpRequest url: "${env.CONSUL}/v1/kv/juleol/image",
+            def response = httpRequest url: "${env.CONSUL}/v1/kv/salt/shared/juleol/image",
               contentType: 'TEXT_PLAIN',
               customHeaders: [[name: "X-Consul-Token", value: env.TOKEN]],
               httpMode: 'PUT',
