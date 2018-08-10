@@ -34,11 +34,7 @@
         "consul", "agent",
         "-data-dir=/var/lib/consul",
         "-config-dir=/etc/consul",
-        "-bind=::",
-        "-rejoin",
-        "-retry-join", "{{ if .CONSUL }}{{ .CONSUL }}{{ else }}consul{{ end }}",
-        "-retry-max", "10",
-        "-retry-interval", "10s"
+        "-bind=::"
       ],
       health: {
         exec: "/usr/bin/curl --fail -s http://localhost:8500",
