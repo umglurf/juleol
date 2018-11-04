@@ -16,7 +16,13 @@
 </dl>
 <p>
 <a href="#" id="prev">Previous</a>
+<select id="select_beer">
+{% for beer in g.participant.tasting.beers %}
+<option>{{ beer.number }}</option>
+{% endfor %}
+</select>
 <a href="#" id="next">Next</a>
+</p>
 
 <p><a href="/result/{{ g.participant.tasting.year }}">Result</a></p>
 <p><a href="/">Home</a></p>
@@ -27,6 +33,9 @@
   var current_beer_pos = 0;
   const score_types = ["look", "smell", "taste", "aftertaste", "xmas"];
 
+  $("#select_beer").change(function() {
+    set_beer();
+  });
   $("#prev").click(function() {
     prev_beer();
   });
@@ -71,6 +80,14 @@
       current_beer_pos = current_beer_pos + 1;
     };
     get_beer_rating(beers[current_beer_pos]);
+  };
+  
+  function set_beer() {
+    num = $("#select_beer")[0].value - 1;
+    if(num >= 0 && num < beers.length) {
+      current_beer_pos = num;
+      get_beer_rating(beers[current_beer_pos]);
+    }
   };
 
 
