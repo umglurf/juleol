@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Juleølsmaking result {{ participant.tasting.year }} for {{ participant.name }}{% endblock %}
+
+{%block content %}
+<h1>Juleølsmaking result {{ participant.tasting.year }} for {{ participant.name }}</h1>
+<table id="resulttable">
+  <thead>
+    <tr>
+      <th style="width: 7em;">Beer number</th>
+      <th>Beer</th>
+      <th style="width: 5em;">Look</th>
+      <th style="width: 5em;">Smell</th>
+      <th style="width: 5em;">Taste</th>
+      <th style="width: 5em;">Aftertaste</th>
+      <th style="width: 5em;">Xmas</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for score in scores %}
+    <tr>
+      <td>{{ score.number }}</td>
+      <td>{{ score.name }}</td>
+      <td>{{ score.look }}</td>
+      <td>{{ score.smell }}</td>
+      <td>{{ score.taste }}</td>
+      <td>{{ score.aftertaste }}</td>
+      <td>{{ score.xmas }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p><a href="/result/{{ participant.tasting.year }}">Results {{ participant.tasting.year }}</a></p>
+<p><a href="/">Home</a></p>
+
+<script>
+$(document).ready(function() {
+  $('#resulttable').tablesorter({
+  });
+})
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+{%block content %}
+<h1>Juleøl</h1>
+<ul>
+  {% for tasting in tastings %}
+  <li>
+    <a href="/result/{{ tasting.year }}">{{ tasting.year }}</a>
+    {% if 'user_id' in session %}
+    <a href="/rate/{{ tasting.year }}">Enter rating</a>
+    {% else %}
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% if 'user_id' in session %}
+<p><a href="/logout">Logout</a></p>
+{% else %}
+<p><a href="/login">Login</a></p>
+{% endif %}
+{% endblock %}

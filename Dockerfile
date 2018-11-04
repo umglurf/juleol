@@ -1,46 +1,28 @@
-FROM docker.haavard.name/baseimage:latest
+FROM ubuntu:18.04 as build
 
-RUN apt-get update && \
-    apt-get -y --no-install-recommends install curl unzip ca-certificates libdancer2-perl libdancer2-plugin-database-perl libclass-dbi-mysql-perl libdbd-sqlite3-perl libtest2-suite-perl libfcgi-perl libfcgi-procmanager-perl libtry-tiny-perl libstatistics-basic-perl libyaml-perl libmodule-build-perl libcrypt-eksblowfish-perl libdigest-bcrypt-perl libcrypt-rijndael-perl libdbd-sqlite3-perl libdbix-class-schema-loader-perl libdbicx-sugar-perl libsql-translator-perl libdata-entropy-perl libhttp-lite-perl libtemplate-perl libsession-storage-secure-perl libtest-mockobject-perl build-essential nginx && \
-    cpan -i Dancer2::Session::Cookie Dancer2::Plugin::DBIC Dancer2::Plugin::Passphrase Dancer2::Plugin::Auth::Tiny ExtUtils::MakeMaker && \
-    ln -sf /dev/stdout /var/log/nginx/access.log && \
-    ln -sf /dev/stderr /var/log/nginx/error.log
+WORKDIR /build
 
-# Install Consul
-# Releases at https://releases.hashicorp.com/consul
-RUN export CONSUL_VERSION=1.2.2 \
-    && export CONSUL_CHECKSUM=7fa3b287b22b58283b8bd5479291161af2badbc945709eb5412840d91b912060 \
-    && curl --retry 7 --fail -vo /tmp/consul.zip "https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip" \
-    && echo "${CONSUL_CHECKSUM}  /tmp/consul.zip" | sha256sum -c \
-    && unzip /tmp/consul -d /usr/local/bin \
-    && rm /tmp/consul.zip \
-    && mkdir /config
+RUN apt-get update \
+    && DEBIAN_FRONTENT=noninteractive apt-get -y upgrade \
+    && DEBIAN_FRONTENT=noninteractive apt-get -y install build-essential dumb-init python3 python3-dev python3-setuptools virtualenv \
+    && mkdir /usr/local/juleol \
+    && virtualenv -p /usr/bin/python3 /usr/local/juleol
 
-# Create empty directories for Consul config and data
-RUN mkdir -p /etc/consul \
-    && mkdir -p /var/lib/consul
+COPY . /build/
+RUN . /usr/local/juleol/bin/activate \
+    && python setup.py install \
+    && python setup.py install_lib
 
-# Add Containerpilot and set its configuration
-ENV CONTAINERPILOT_VER 3.5.1
-ENV CONTAINERPILOT /etc/containerpilot.json5
+FROM ubuntu:18.04 as prod
 
-RUN export CONTAINERPILOT_CHECKSUM=7ee8e59588b6b593325930b0dc18d01f666031d7 \
-    && curl -Lso /tmp/containerpilot.tar.gz \
-         "https://github.com/joyent/containerpilot/releases/download/${CONTAINERPILOT_VER}/containerpilot-${CONTAINERPILOT_VER}.tar.gz" \
-    && echo "${CONTAINERPILOT_CHECKSUM}  /tmp/containerpilot.tar.gz" | sha1sum -c \
-    && tar zxf /tmp/containerpilot.tar.gz -C /usr/local/bin \
-    && rm /tmp/containerpilot.tar.gz
+RUN apt-get update \
+    && DEBIAN_FRONTENT=noninteractive apt-get -y install dumb-init python3 \
+    && apt-get -y clean \
+    && useradd -r juleol
 
+COPY --from=build /usr/local/juleol /usr/local/juleol
+COPY wscgi.py /usr/local/juleol
+COPY run /bin/run
 
-COPY . /var/www/juleol/
-WORKDIR /var/www/juleol
-RUN perl Makefile.PL && make install && mkdir environments
-WORKDIR /
-RUN apt-get -y remove build-essential && \
-    apt-get -y autoremove build-essential && \
-    apt-get clean
-COPY juleol.nginx.conf /etc/nginx/sites-available/default
-COPY containerpilot.json5 /etc/
-ENTRYPOINT 
-CMD ["/usr/local/bin/containerpilot"]
-HEALTHCHECK --interval=5s --timeout=2s CMD /usr/local/bin/containerpilot -version >/dev/null
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+CMD ["/bin/run"]

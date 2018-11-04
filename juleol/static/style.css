@@ -1,0 +1,87 @@
+body {
+margin: 0.5em;
+padding: 0px;
+background-color: #ddd;
+
+color: #333;
+}
+
+dl dt {
+  float: left;
+  margin-right:10px; 
+  padding:5px;  
+  width: 5em;
+}
+
+dl dd {
+  margin:2px 0; 
+  padding:5px 0;
+}
+
+ol.ratinglist li ul {
+  list-style: none;
+}
+ol.ratinglist>li {
+  border: 1px solid;
+  margin: 1px;
+  width: 20em;
+}
+li {
+  padding: 2px;
+}
+ol.ratinglist li ul li label {
+  float: left;
+  width: 8em;
+}
+ol.ratinglist li ul li input[type="number"] {
+  width: 2em;
+  border: 1px solid #999;
+}
+
+.error {
+  color: red;
+}
+
+li.error {
+  list-style: none;
+}
+
+
+li.message {
+  list-style: none;
+}
+
+table {
+  border: 1px solid;
+  margin: 1em;
+}
+
+td {
+  border: 2px inset;
+  padding: 0.3em;
+}
+
+tr.score_detail {
+  display: none;
+}
+
+table.tablesorter thead tr th, table.tablesorter tfoot tr th {
+	border: 2px inset #FFF;
+	padding: 4px;
+}
+table.tablesorter thead tr .tablesorter-header {
+	background-image: url(/static/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+
+table.tablesorter thead tr .tablesorter-headerAsc {
+	background-image: url(/static/asc.gif);
+}
+table.tablesorter thead tr .tablesorter-headerDesc {
+	background-image: url(/static/desc.gif);
+}
+table.tablesorter thead tr .tablesorter-headerAsc, table.tablesorter thead tr .tablesorter-headerDesc {
+background-color: #ccc;
+}

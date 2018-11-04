@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Juleølsmaking result {{ tasting.year }}{% endblock %}
+
+{%block content %}
+<h1>Juleølsmaking {{ tasting.year }}</h1>
+
+<h2>Participants</h2>
+<ul>
+  {% for participant in participants %}
+  <li><a href="{{ "/result/{}/{}".format(participant.tasting.year, participant.id) }}">{{ participant.name }}</a></li>
+  {% endfor %}
+</ul>
+
+<h2>Result</h2>
+<table id="resulttable" class="tablesorter">
+  <thead>
+  <tr>
+    <th style="width: 7em">Beer number</th>
+    <th>Beer</th>
+    <th style="width: 7em">Sum</th>
+    <th style="width: 7em">Average</th>
+    <th style="width: 7em">Standard deviation</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for score in beer_scores.totals %}
+  <tr id="beer_{{ score.number }}">
+    <td>{{ score.number }}</td>
+    <td onclick="show_details('#score_detail_{{ score.number }}')">{{ score.name }} ⇣</td>
+    <td> {{ score.sum }}</td>
+    {%- if score.avg %}
+    <td> {{ "{:.2f}".format(score.avg) }}</td>
+    {%- else %}
+    <td/>
+    {%- endif %}
+    {%- if score.std %}
+    <td> {{ "{:.2f}".format(score.std) }}</td>
+    {%- else %}
+    <td/>
+    {%- endif %}
+  </tr>
+  <tr class="score_detail" id="score_detail_{{ score.number }}">
+    <td/>
+    <td>
+        <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Sum</th>
+            <th>Deviation from average</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for participant in beer_scores.details[score.number] %}
+          <tr>
+            <td>{{ participant.name }}</td>
+            <td>{{ participant.sum }}</td>
+            {%- if participant.sum %}
+            <td>{{ "{:.2f}".format(score.avg - participant.sum) }}</td>
+            {%- else %}
+            <td/>
+            {%- endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </td>
+    <td colspan="3"/>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<p><a href="/">Home</a></p>
+
+
+<script>
+function show_details(id) {
+  $(id).toggle();
+}
+
+$(document).ready(function() {
+  $('#resulttable').tablesorter({
+  });
+  $('#resulttable').bind("sortEnd", function() {
+    $("tr.score_detail").each(function() {
+      $(this).detach();
+      num = this.id.split("_")[2];
+      sel = "#beer_" + num;
+      $(this).insertAfter(sel);
+    });
+  })
+})
+</script>
+{% endblock %}
+

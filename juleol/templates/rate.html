@@ -1,0 +1,138 @@
+{% from "_formhelper.html" import render_field %}
+{% extends 'base.html' %}
+
+{% block title %}Juleøl rate beer year {{ g.participant.tasting.year }}{% endblock %}
+{%block content %}
+<h1>Juleøl rate beer year {{ g.participant.tasting.year }}</h1>
+
+<h2 id="rating_header">Rating for beer</h2>
+<dl id="rating">
+    {{ render_field(form.look) }}
+    {{ render_field(form.smell) }}
+    {{ render_field(form.taste) }}
+    {{ render_field(form.aftertaste) }}
+    {{ render_field(form.xmas) }}
+  <p class="error" style="display: none;"/>
+</dl>
+<p>
+<a href="#" id="prev">Previous</a>
+<a href="#" id="next">Next</a>
+
+<p><a href="/result/{{ g.participant.tasting.year }}">Result</a></p>
+<p><a href="/">Home</a></p>
+
+<script>
+  const year = {{ g.participant.tasting.year }};
+  const beers = {{ g.participant.tasting.beers | map(attribute='number') | list | tojson }};
+  var current_beer_pos = 0;
+  const score_types = ["look", "smell", "taste", "aftertaste", "xmas"];
+
+  $("#prev").click(function() {
+    prev_beer();
+  });
+  $("#next").click(function() {
+    next_beer();
+  });
+
+  $("input#look").focusout(function() {
+    submit_beer_score("look");
+  });
+
+  $("input#smell").focusout(function() {
+    submit_beer_score("smell");
+  });
+
+  $("input#taste").focusout(function() {
+    submit_beer_score("taste");
+  });
+  
+  $("input#aftertaste").focusout(function() {
+    submit_beer_score("aftertaste");
+  });
+  
+  $("input#xmas").focusout(function() {
+    submit_beer_score("xmas");
+  });
+  
+
+  function prev_beer() {
+    if(current_beer_pos == 0) {
+      current_beer_pos = beers.length - 1;
+    } else {
+      current_beer_pos = current_beer_pos - 1;
+    };
+    get_beer_rating(beers[current_beer_pos]);
+  };
+
+  function next_beer() {
+    if(current_beer_pos == beers.length - 1) {
+      current_beer_pos = 0;
+    } else {
+      current_beer_pos = current_beer_pos + 1;
+    };
+    get_beer_rating(beers[current_beer_pos]);
+  };
+
+
+  function get_beer_rating(beer_number) {
+    $.ajax("/rate/" + year + "/" + beer_number, {
+      method: "GET",
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $("p.error").hide();
+        $("h2#rating_header").text("Rating for beer " + beer_number);
+        for (let key of score_types) {
+          if(data[key] != null) {
+            $("input#" + key)[0].value = data[key];
+          } else {
+            $("input#" + key)[0].value = "";
+          };
+        };
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        var msg = xhr.responseJSON.error;
+        $("p.error").text(msg);
+        $("p.error").show();
+      }
+    });
+  };
+
+  function submit_beer_score(score_type) {
+    var score = $("input#" + score_type)[0].value;
+    if(!score) {
+      return;
+    };
+    var beer_number = beers[current_beer_pos];
+    console.log("beer number: " + beer_number + " current pos: " + current_beer_pos);
+    data = new Map();
+    data[score_type] = score;
+    $.ajax("/rate/" + year + "/" + beer_number, {
+      method: "PUT",
+      dataType: "json",
+      data: data,
+      success: function(data, textStatus, xhr) {
+        $("p.error").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        var msg = xhr.responseJSON.error;
+        $("p.error").text(msg);
+        $("p.error").show();
+      }
+    });
+  };
+  
+  $("#rating").touchwipe({
+    wipeLeft: function() { prev_beer();},
+    wipeRight: function() { next_beer(); },
+    //wipeUp: function() { },
+    //wipeDown: function() { },
+    min_move_x: 20,
+    min_move_y: 20,
+    preventDefaultEvents: true
+  });
+
+  $(document).ready(function() {
+    get_beer_rating(1);
+  });
+</script>
+{% endblock %}
