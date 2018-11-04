@@ -74,7 +74,25 @@ def result(year):
     beer_scores = db.get_beer_scores(tasting)
     participants = db.Participants.query.filter(db.Participants.tasting_id == tasting.id).all()
 
-    return render_template('result.html', beer_scores = beer_scores, tasting = tasting, participants = participants)
+    if request.headers['Content-Type'] == 'application/json':
+        result = {}
+        result['beer_scores'] = {}
+        for score in beer_scores['totals']:
+            s = int(score.sum) if score.sum else None
+            a = float(score.avg) if score.avg else None
+            d = float(score.std) if score.std else None
+            result['beer_scores'][score.number] = {
+                    'name': score.name,
+                    'sum': s,
+                    'average': a,
+                    'stddev': d
+                    }
+        result['participants'] = {}
+        for participant in participants:
+            result['participants'][participant.id] = { 'name': participant.name }
+        return jsonify(result)
+    else:
+        return render_template('result.html', beer_scores = beer_scores, tasting = tasting, participants = participants)
 
 @bp.route('/result/<int:year>/<int:participant_id>')
 def participant_result(year, participant_id):
