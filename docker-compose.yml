@@ -1,0 +1,28 @@
+version: "3"
+services:
+  juleol:
+    build: ./
+    environment:
+      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://juleol:juleol@mysql/juleol"
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - juleol
+  mysql:
+    environment:
+      MYSQL_ROOT_PASSWORD: MavpqFneBSyS
+      MYSQL_DATABASE: juleol
+      MYSQL_USER: juleol
+      MYSQL_PASSWORD: juleol
+    ports:
+      - "127.0.0.1:3306:3306"
+    image: mariadb:10
+    networks:
+      - juleol
+    volumes:
+      - juleol-mysql:/var/lib/mysql
+
+networks:
+  juleol:
+volumes:
+  juleol-mysql:

@@ -1,1 +1,0 @@
-dbicdump -o dump_directory=./lib Juleol::Schema 'dbi:mysql:database=DB' USER PASS 

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ -z $FLASK_ENV ]
+then
+  export FLASK_ENV=production
+fi
+
+if [ -z $JULEOL_SETTINGS ]
+then
+  export JULEOL_SETTINGS=/etc/juleol.conf
+  if [ -z $SECRET_KEY ]
+  then
+    echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> /etc/juleol.conf
+  fi
+  if [ -z $SQLALCHEMY_DATABASE_URI ]
+  then
+    echo 'SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"' >> /etc/juleol.conf
+  else
+    echo "SQLALCHEMY_DATABASE_URI = \"$SQLALCHEMY_DATABASE_URI\"" >> /etc/juleol.conf
+  fi
+fi
+
+exec su juleol -c "cd /usr/local/juleol && . bin/activate && gunicorn --bind 0.0.0.0:3000 wscgi"

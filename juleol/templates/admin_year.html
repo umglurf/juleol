@@ -1,0 +1,61 @@
+{% from "_formhelper.html" import render_field %}
+{% extends 'base.html' %}
+
+{% block title %}Juleøl admin tasting year {{ tasting.year }}{% endblock %}
+{%block content %}
+
+<script>
+  function update_beer_name(obj, id) {
+    $(obj).siblings("img:nth-of-type(1)").show();
+    var name = obj.value;
+    $.ajax("/admin/beer/" + id, {
+      method: "PUT",
+      data: { "name": name },
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        var msg = xhr.responseJSON.error;
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  }
+</script>
+
+<h1>Juleøl admin tasting year {{ tasting.year }}</h1>
+
+<h2>Beers</h2>
+<dl>
+  {% for beer in tasting.beers %}
+  <dt>Beer {{ beer.number }}</dt>
+  <dd><input type="text" value="{{ beer.name }}" onfocusout="update_beer_name(this, {{ beer.id }});"/>
+  <p class="error" style="display: none;"/>
+  </dd>
+  {% endfor %}
+</dl>
+
+<h2>Participants</h2>
+<dl>
+  {% for participant in tasting.participants %}
+  <form action="/admin/{{ tasting.year }}/participant/{{ participant.id }}" method="post">
+  <dt>{{ participant.name }}</dt>
+  <dd><input type="password" name="password"/><input type="submit" value="Change password"/>
+  </dd>
+  </form>
+  {% endfor %}
+</dl>
+
+<form action="/admin/{{ tasting.year }}/participant" method="post">
+  <dl>
+    {{ render_field(participant_form.name) }}
+    {{ render_field(participant_form.password) }}
+  </dl>
+  <p><input type=submit value=Create></p>
+</form>
+
+<p><a href="/admin/">Admin Home</a></p>
+<p><a href="/">Home</a></p>
+
+{% endblock %}

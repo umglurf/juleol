@@ -1,0 +1,24 @@
+{% from "_formhelper.html" import render_field %}
+{% extends 'base.html' %}
+
+{% block title %}Juleøl admin{% endblock %}
+{%block content %}
+<h1>Juleøl admin</h1>
+<ul>
+  {% for tasting in tastings %}
+  <li><a href="/admin/{{ tasting.year }}">{{ tasting.year }}</a></li>
+  {% endfor %}
+</ul>
+
+<h2>Create new tasting</h2>
+<form method="post">
+  <dl>
+    {{ render_field(form.year) }}
+    {{ render_field(form.beers) }}
+  </dl>
+  <p><input type=submit value="Create"></p>
+</form>
+
+<p><a href="/">Home</a></p>
+{% endblock %}
+
