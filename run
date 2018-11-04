@@ -20,4 +20,4 @@ then
   fi
 fi
 
-exec su juleol -c "cd /usr/local/juleol && . bin/activate && gunicorn --bind 0.0.0.0:3000 wscgi"
+exec su juleol -c "cd /usr/local/juleol && . bin/activate && gunicorn --bind [::]:3000 wscgi"
