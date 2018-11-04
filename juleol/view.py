@@ -110,11 +110,11 @@ def rate_beer(year, beer_number):
         return response
 
     if request.method == 'GET':
-        taste = db.ScoreTaste.query.filter(db.ScoreTaste.tasting == g.participant.tasting).filter(db.ScoreTaste.beer == beer).first()
-        aftertaste = db.ScoreAftertaste.query.filter(db.ScoreAftertaste.tasting == g.participant.tasting).filter(db.ScoreAftertaste.beer == beer).first()
-        look = db.ScoreLook.query.filter(db.ScoreLook.tasting == g.participant.tasting).filter(db.ScoreLook.beer == beer).first()
-        smell = db.ScoreSmell.query.filter(db.ScoreSmell.tasting == g.participant.tasting).filter(db.ScoreSmell.beer == beer).first()
-        xmas = db.ScoreXmas.query.filter(db.ScoreXmas.tasting == g.participant.tasting).filter(db.ScoreXmas.beer == beer).first()
+        taste = db.ScoreTaste.query.filter(db.ScoreTaste.participant == g.participant).filter(db.ScoreTaste.beer == beer).first()
+        aftertaste = db.ScoreAftertaste.query.filter(db.ScoreAftertaste.participant == g.participant).filter(db.ScoreAftertaste.beer == beer).first()
+        look = db.ScoreLook.query.filter(db.ScoreLook.participant == g.participant).filter(db.ScoreLook.beer == beer).first()
+        smell = db.ScoreSmell.query.filter(db.ScoreSmell.participant == g.participant).filter(db.ScoreSmell.beer == beer).first()
+        xmas = db.ScoreXmas.query.filter(db.ScoreXmas.participant == g.participant).filter(db.ScoreXmas.beer == beer).first()
 
         data = {
                 'taste': taste.score,
