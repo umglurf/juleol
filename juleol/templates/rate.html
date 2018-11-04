@@ -12,8 +12,8 @@
     {{ render_field(form.taste) }}
     {{ render_field(form.aftertaste) }}
     {{ render_field(form.xmas) }}
-  <span class="error" style="display: none;"/>
 </dl>
+<p class="error" style="display: none;"/>
 <p>
 <a href="#" id="prev">Previous</a>
 <select id="select_beer">
@@ -96,7 +96,7 @@
       method: "GET",
       dataType: "json",
       success: function(data, textStatus, xhr) {
-        $("span.error").hide();
+        $("p.error").hide();
         $("h2#rating_header").text("Rating for beer " + beer_number);
         for (let key of score_types) {
           if(data[key] != null) {
@@ -108,8 +108,8 @@
       },
       error: function(xhr, ajaxOptions, thrownError) {
         var msg = xhr.responseJSON.error;
-        $("span.error").text(msg);
-        $("span.error").show();
+        $("p.error").text(msg);
+        $("p.error").show();
       }
     });
   };
@@ -127,12 +127,12 @@
       dataType: "json",
       data: data,
       success: function(data, textStatus, xhr) {
-        $("span.error").hide();
+        $("p.error").hide();
       },
       error: function(xhr, ajaxOptions, thrownError) {
         var msg = xhr.responseJSON.error;
-        $("span.error").text(msg);
-        $("span.error").show();
+        $("p.error").text(msg);
+        $("p.error").show();
       }
     });
   };
