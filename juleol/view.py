@@ -74,7 +74,7 @@ def result(year):
     beer_scores = db.get_beer_scores(tasting)
     participants = db.Participants.query.filter(db.Participants.tasting_id == tasting.id).all()
 
-    if request.headers['Content-Type'] == 'application/json':
+    if request.headers.get('Content-Type', '') == 'application/json':
         result = {}
         result['beer_scores'] = {}
         for score in beer_scores['totals']:
