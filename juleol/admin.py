@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, render_template, request, session, jsonify, redirect, url_for, flash
+from flask import Flask, Blueprint, render_template, request, session, jsonify, redirect, url_for, flash, current_app
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
@@ -48,7 +48,7 @@ def admin_index():
             flash("Tasting for year {} created".format(form.year.data))
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            app.logger.error("Error creating tasting: {}".format(e))
+            current_app.logger.error("Error creating tasting: {}".format(e))
             flash("Error creating tasting for year {}".format(form.year.data), 'error')
 
     tastings = db.Tastings.query.all()
@@ -123,7 +123,7 @@ def update_participant(year, participant_id):
             flash("Password updated")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            app.logger.error("Error updating password: {}".format(e))
+            current_app.logger.error("Error updating password: {}".format(e))
             flash("Error updating password")
     else:
         flash("Invalid form data")
@@ -147,7 +147,7 @@ def beer(beer_id):
             return jsonify(message="Beer name updated")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            app.logger.error("Error updating password: {}".format(e))
+            current-app.logger.error("Error updating password: {}".format(e))
             response = jsonify(error = "Error updating beer name")
             response.status_code = 500
             return response

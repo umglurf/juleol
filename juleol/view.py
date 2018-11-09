@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, render_template, request, session, jsonify, redirect, url_for, flash, g
+from flask import Flask, Blueprint, render_template, request, session, jsonify, redirect, url_for, flash, g, current_app
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
@@ -174,7 +174,7 @@ def rate_beer(year, beer_number):
         db.db.session.commit()
     except exc.SQLAlchemyError as e:
         db.db.session.rollback()
-        app.logger.error("Error updating scores: {}".format(e))
+        current_app.logger.error("Error updating scores: {}".format(e))
         response = jsonify(error = "Error updating scores")
         response.status_code = 500
         return response
