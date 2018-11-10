@@ -47,7 +47,7 @@ class Participants(db.Model):
 
 class ScoreTaste(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
-    score = db.Column(db.SmallInteger, nullable=False)
+    score = db.Column(db.SmallInteger, nullable=True)
     beer_id = db.Column(db.Integer, db.ForeignKey('beers.id'), nullable=False)
     beer = db.relationship('Beers', back_populates='score_tastes')
     participant_id = db.Column(db.Integer, db.ForeignKey('participants.id'), nullable=False)
