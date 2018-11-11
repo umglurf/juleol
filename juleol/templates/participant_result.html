@@ -14,6 +14,7 @@
       <th style="width: 5em;">Taste</th>
       <th style="width: 5em;">Aftertaste</th>
       <th style="width: 5em;">Xmas</th>
+      <th style="width: 5em;">Sum</th>
     </tr>
   </thead>
   <tbody>
@@ -26,6 +27,7 @@
       <td>{{ score.taste }}</td>
       <td>{{ score.aftertaste }}</td>
       <td>{{ score.xmas }}</td>
+      <td>{{ score.look + score.smell + score.taste + score.aftertaste+ score.xmas }}</td>
     </tr>
     {% endfor %}
   </tbody>
