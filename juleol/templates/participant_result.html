@@ -27,7 +27,7 @@
       <td>{{ score.taste }}</td>
       <td>{{ score.aftertaste }}</td>
       <td>{{ score.xmas }}</td>
-      <td>{{ score.look + score.smell + score.taste + score.aftertaste+ score.xmas }}</td>
+      <td>{{ int(score.look or 0) + int(score.smell or 0) + int(score.taste or 0) + int(score.aftertaste or 0) + int(score.xmas or 0) }}</td>
     </tr>
     {% endfor %}
   </tbody>
