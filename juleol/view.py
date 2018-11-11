@@ -15,11 +15,11 @@ class LoginForm(Form):
     password = PasswordField("Password", [validators.input_required(), validators.Length(1,255)])
 
 class RatingForm(Form):
-    look = IntegerField('Look', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
-    smell = IntegerField('Smell', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
-    taste = IntegerField('Taste', [validators.optional(), validators.NumberRange(0, 9)], widget = NumberInput(min=0, max=9))
-    aftertaste = IntegerField('Aftertaste', [validators.optional(), validators.NumberRange(0, 5)], widget = NumberInput(min=0, max=5))
-    xmas = IntegerField('Xmas', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
+    look = IntegerField('Look (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
+    smell = IntegerField('Smell (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
+    taste = IntegerField('Taste (0-9)', [validators.optional(), validators.NumberRange(0, 9)], widget = NumberInput(min=0, max=9))
+    aftertaste = IntegerField('Aftertaste (0-5)', [validators.optional(), validators.NumberRange(0, 5)], widget = NumberInput(min=0, max=5))
+    xmas = IntegerField('Xmas (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
 
 def login_required(f):
     @wraps(f)
