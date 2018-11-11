@@ -25,6 +25,7 @@
 <table id="resulttable" class="tablesorter">
   <thead>
   <tr>
+    <th style="width: 7em">Number</th>
     <th style="width: 7em">Beer number</th>
     <th>Beer</th>
     <th style="width: 7em">Sum</th>
@@ -35,6 +36,7 @@
   <tbody>
   {% for score in beer_scores.totals %}
   <tr id="beer_{{ score.number }}">
+    <td class="row_index">{{ loop.index }}</td>
     <td>{{ score.number }}</td>
     <td onclick="show_details('#score_detail_{{ score.number }}')">{{ score.name }} ⇣</td>
     <td> {{ score.sum }}</td>
@@ -98,6 +100,11 @@ $(document).ready(function() {
       num = this.id.split("_")[2];
       sel = "#beer_" + num;
       $(this).insertAfter(sel);
+    });
+    var i = 1;
+    $("td.row_index").each(function() {
+      $(this).text(i);
+      i = i + 1;
     });
   })
 })

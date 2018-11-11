@@ -7,6 +7,7 @@
 <table id="resulttable">
   <thead>
     <tr>
+      <th style="width: 7em;">Number</th>
       <th style="width: 7em;">Beer number</th>
       <th>Beer</th>
       <th style="width: 5em;">Look</th>
@@ -20,6 +21,7 @@
   <tbody>
     {% for score in scores %}
     <tr>
+      <td class="row_index">{{ loop.index }}</td>
       <td>{{ score.number }}</td>
       <td>{{ score.name }}</td>
       <td>{{ score.look }}</td>
@@ -38,6 +40,13 @@
 <script>
 $(document).ready(function() {
   $('#resulttable').tablesorter({
+  });
+  $('#resulttable').bind("sortEnd", function() {
+    var i = 1;
+    $("td.row_index").each(function() {
+      $(this).text(i);
+      i = i + 1;
+    });
   });
 })
 </script>
