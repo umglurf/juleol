@@ -12,6 +12,15 @@
   {% endfor %}
 </ul>
 
+{% if tasting.notes | length > 0 %}
+<h2>Notes</h2>
+<ul>
+  {% for note in tasting.notes %}
+  <li>{{ note.note }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
 <h2>Result</h2>
 <table id="resulttable" class="tablesorter">
   <thead>

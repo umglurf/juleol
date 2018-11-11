@@ -25,6 +25,9 @@ class ParticipantPasswordForm(Form):
 class BeerNameForm(Form):
     name = TextField("Name", [validators.input_required(), validators.Length(1, 255)])
 
+class NoteForm(Form):
+    note = TextField("Note", [validators.input_required()])
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -62,8 +65,9 @@ def admin_year(year):
         flash("Invalid year")
         return redirect(url_for('admin_index'))
 
-    form = ParticipantForm(request.form)
-    return render_template('admin_year.html', tasting = tasting, participant_form=form)
+    participant_form = ParticipantForm(request.form)
+    note_form = NoteForm(request.form)
+    return render_template('admin_year.html', tasting = tasting, participant_form=participant_form, note_form=note_form)
 
 @bp.route('/admin/<int:year>/participant', methods=["POST"])
 @login_required
@@ -129,6 +133,70 @@ def update_participant(year, participant_id):
         flash("Invalid form data")
 
     return redirect("/admin/{}".format(year))
+
+@bp.route('/admin/<int:year>/note', methods=["POST"])
+@login_required
+def new_note(year):
+    tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
+    if not tasting:
+        flash("Invalid year")
+        return redirect(url_for('admin_index'))
+
+    form = NoteForm(request.form)
+    if form.validate():
+        try:
+            note = db.Notes(tasting = tasting, note=form.note.data)
+            db.db.session.add(note)
+            db.db.session.commit()
+            flash("Note added")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            app.logger.error("Error creating note: {}".format(e))
+            flash("Error creating note")
+    else:
+        flash("Invalid form data")
+
+    return redirect("/admin/{}".format(year))
+
+@bp.route('/admin/note/<int:note_id>', methods=["GET", "PUT", "DELETE"])
+@login_required
+def update_note(note_id):
+    note = db.Notes.query.filter(db.Notes.id == note_id).first()
+    if not note:
+        response = jsonify(error = "Invalid note id")
+        response.status_code = 404
+        return response
+    if request.method == 'GET':
+        return jsonify({'id': note.id, 'note': note.note})
+    elif request.method == 'PUT':
+        form = NoteForm(request.form)
+        if form.validate():
+            try:
+                note.note = form.note.data
+                db.db.session.add(note)
+                db.db.session.commit()
+                return jsonify(message="Note updated")
+            except exc.SQLAlchemyError as e:
+                db.db.session.rollback()
+                current-app.logger.error("Error updating note: {}".format(e))
+                response = jsonify(error = "Error updating note")
+                response.status_code = 500
+                return response
+        else:
+            response = jsonify(error = "Invalid arguments")
+            response.status_code = 400
+            return response
+    elif request.method == 'DELETE':
+        try:
+            db.db.session.delete(note)
+            db.db.session.commit()
+            return jsonify(message="Note deleted")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            current-app.logger.error("Error deleting note: {}".format(e))
+            response = jsonify(error = "Error deleting note")
+            response.status_code = 500
+            return response
 
 @bp.route('/admin/beer/<int:beer_id>', methods=["PUT"])
 @login_required

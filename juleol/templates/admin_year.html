@@ -5,8 +5,9 @@
 {%block content %}
 
 <script>
+  const year = {{ tasting.year }};
+
   function update_beer_name(obj, id) {
-    $(obj).siblings("img:nth-of-type(1)").show();
     var name = obj.value;
     $.ajax("/admin/beer/" + id, {
       method: "PUT",
@@ -16,12 +17,58 @@
         $(obj).siblings("p").hide();
       },
       error: function(xhr, ajaxOptions, thrownError) {
-        var msg = xhr.responseJSON.error;
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating beer";
+        }
         $(obj).siblings("p").text(msg);
         $(obj).siblings("p").show();
       }
     });
-  }
+  };
+
+  function update_note(obj, id) {
+    var note = obj.value;
+    $.ajax("/admin/note/" + id, {
+      method: "PUT",
+      data: { "note": note },
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating note";
+        }
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  };
+
+  function delete_note(obj, id) {
+    var name = obj.value;
+    $.ajax("/admin/note/" + id, {
+      method: "DELETE",
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+        $(obj).parent().remove()
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error deleting note";
+        }
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  };
 </script>
 
 <h1>Juleøl admin tasting year {{ tasting.year }}</h1>
@@ -36,6 +83,23 @@
   {% endfor %}
 </dl>
 
+<h2>Notes</h2>
+<ul>
+  {% for note in tasting.notes %}
+  <li>
+  <input type="text" value="{{ note.note }}" onfocusout="update_note(this, {{ note.id }});"/>
+  <input type="button" value="Delete" onclick="delete_note(this, {{ note.id }});"/>
+  <p class="error" style="display: none;"/>
+  </li>
+  {% endfor %}
+</ul>
+<form action="/admin/{{ tasting.year }}/note" method="post">
+  <dl>
+    {{ render_field(note_form.note) }}
+  </dl>
+  <p><input type=submit value="Add note"></p>
+</form>
+
 <h2>Participants</h2>
 <dl>
   {% for participant in tasting.participants %}
@@ -47,12 +111,13 @@
   {% endfor %}
 </dl>
 
+<h2>New participant</h2>
 <form action="/admin/{{ tasting.year }}/participant" method="post">
   <dl>
     {{ render_field(participant_form.name) }}
     {{ render_field(participant_form.password) }}
   </dl>
-  <p><input type=submit value=Create></p>
+  <p><input type=submit value="Create"></p>
 </form>
 
 <p><a href="/admin/">Admin Home</a></p>

@@ -13,11 +13,18 @@ class Tastings(db.Model):
     year = db.Column(db.Integer, nullable=False, unique=True)
     beers = db.relationship('Beers', back_populates='tasting')
     participants = db.relationship('Participants', back_populates='tasting')
+    notes = db.relationship('Notes', back_populates='tasting')
     score_tastes = db.relationship('ScoreTaste', back_populates='tasting')
     score_aftertastes = db.relationship('ScoreAftertaste', back_populates='tasting')
     score_smells = db.relationship('ScoreSmell', back_populates='tasting')
     score_looks = db.relationship('ScoreLook', back_populates='tasting')
     score_xmases = db.relationship('ScoreXmas', back_populates='tasting')
+
+class Notes(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
+    note = db.Column(db.Text(), nullable=False)
+    tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
+    tasting = db.relationship('Tastings', back_populates='notes')
 
 class Beers(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -139,4 +146,4 @@ def participant_scores(participant):
 
 #return db.session.query(scores, Beers.name).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.tasting_id == tasting.id).all()
 #d.db.session.query(scores, d.Participants.name).filter(scores.c.beer_id == 228).join(d.Participants, d.Participants.id == scores.c.participant_id).all()
-#d.db.session.query(d.db.func.sum(scores.c.sum), d.db.func.avg(scores.c.sum), d.db.func.std(scores.c.sum), scores.c.beer_id).filter(scores.c.beer_id > 227).filter(scores.c.beer_id < 231).group_by(scores.c.beer_id).all()
+#i.db.session.query(d.db.func.sum(scores.c.sum), d.db.func.avg(scores.c.sum), d.db.func.std(scores.c.sum), scores.c.beer_id).filter(scores.c.beer_id > 227).filter(scores.c.beer_id < 231).group_by(scores.c.beer_id).all()
