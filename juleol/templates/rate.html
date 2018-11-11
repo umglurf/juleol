@@ -70,6 +70,7 @@
     } else {
       current_beer_pos = current_beer_pos - 1;
     };
+    $("#select_beer")[0].value = beers[current_beer_pos];
     get_beer_rating(beers[current_beer_pos]);
   };
 
@@ -79,6 +80,7 @@
     } else {
       current_beer_pos = current_beer_pos + 1;
     };
+    $("#select_beer")[0].value = beers[current_beer_pos];
     get_beer_rating(beers[current_beer_pos]);
   };
   
