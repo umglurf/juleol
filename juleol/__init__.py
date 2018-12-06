@@ -13,7 +13,8 @@ def create_app(test_config=None):
     from juleol import admin, db, view, haavard
     app.register_blueprint(admin.bp)
     app.register_blueprint(view.bp)
-    # Change these to lines to use another authentication
+    # Change these two lines to use another authentication
+    # also modify the login_required function in admin.py
     haavard_bp = haavard.make_haavard_blueprint(redirect_to="admin.admin_index")
     app.register_blueprint(haavard_bp, url_prefix="/admin/login")
 
