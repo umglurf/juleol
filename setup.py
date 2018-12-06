@@ -5,6 +5,7 @@ setup(
     packages=['juleol'],
     include_package_data=True,
     install_requires=[
+        'idna==2.7',
         'gunicorn',
         'flask~=1.0',
         'flask-bcrypt',
