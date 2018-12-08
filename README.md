@@ -32,7 +32,7 @@ image, the following environment variables are supported
 Set up a virtual env and install dependancies
 ```
 mkdir juleol_virtualenv
-virtualenv -p /usr/bin/python3
+virtualenv -p /usr/bin/python3 juleol_virtualenv
 . juleol_virtualenv/bin/activate
 pip install -e .
 ```
