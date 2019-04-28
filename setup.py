@@ -9,7 +9,7 @@ setup(
         'gunicorn',
         'flask~=1.0',
         'flask-bcrypt',
-        'Flask-Dance',
+        'Flask-Dance~=1.0',
         'flask_sqlalchemy',
         'PyMySQL',
         'wtforms',
