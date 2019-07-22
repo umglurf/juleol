@@ -25,6 +25,7 @@ def client():
                 test_tasting = juleol.db.Tastings()
                 test_tasting.year = 2000
                 MockTastings.query.all.return_value = [test_tasting]
+                MockTastings.query.filter.return_value.first.return_value = test_tasting
                 MockTastings.query.filter.return_value.filter.return_value.first.return_value = test_tasting
 
                 test_participant = juleol.db.Participants()
