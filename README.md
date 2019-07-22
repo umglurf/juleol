@@ -75,3 +75,7 @@ And change flask start to
 ```
 flask run -h 127.0.0.1 --cert server.crt --key server.key
 ```
+
+### Running tests
+
+```python setup.py test```

@@ -1,4 +1,5 @@
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
 
 setup(
     name='juleol',
@@ -14,9 +15,6 @@ setup(
         'PyMySQL',
         'wtforms',
     ],
-    extras_require={
-        'test': [
-            'pytest'
-        ]
-    },
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
 )
