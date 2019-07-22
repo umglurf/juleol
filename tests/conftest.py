@@ -1,6 +1,7 @@
 import pytest
 import juleol
 import juleol.db
+from flask_dance.consumer.storage import MemoryStorage
 from unittest.mock import patch
 
 class TestConfig(object):
@@ -37,3 +38,27 @@ def client():
                 MockParticipant.query.filter.return_value.filter.return_value.first.return_value = test_participant
     
                 yield client
+
+@pytest.fixture
+def admin_client(monkeypatch):
+    app = juleol.create_app(TestConfig)
+    client = app.test_client()
+    
+    with app.app_context():
+        storage = MemoryStorage({"access_token": "fake-token"})
+        monkeypatch.setattr(app.blueprints['oauth_haavard'], "storage", storage)
+
+        yield client
+
+@pytest.fixture
+def admin_noauth_client(monkeypatch):
+    app = juleol.create_app(TestConfig)
+    client = app.test_client()
+    
+    with app.app_context():
+        storage = MemoryStorage()
+        monkeypatch.setattr(app.blueprints['oauth_haavard'], "storage", storage)
+
+        with patch('juleol.db.Tastings') as MockTastings:
+
+        yield client
