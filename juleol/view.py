@@ -44,18 +44,15 @@ def login():
     form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
     if request.method == "POST" and form.validate():
         tasting = db.Tastings.query.filter(db.Tastings.year == form.year.data).first()
-        if not tasting:
-            flash("Invalid year", 'error')
-        else:
-            participant = db.Participants.query.filter(db.Participants.tasting == tasting).filter(db.Participants.name == form.name.data).first()
-            if participant:
-                if bcrypt.check_password_hash(participant.password, form.password.data):
-                    session['user_id'] = participant.id
-                    return redirect(url_for('view.index'))
-                else:
-                    flash("Invalid user or password", 'error')
+        participant = db.Participants.query.filter(db.Participants.tasting == tasting).filter(db.Participants.name == form.name.data).first()
+        if participant:
+            if bcrypt.check_password_hash(participant.password, form.password.data):
+                session['user_id'] = participant.id
+                return redirect(url_for('view.index'))
             else:
                 flash("Invalid user or password", 'error')
+        else:
+            flash("Invalid user or password", 'error')
 
     return render_template('login.html', form=form)
 
