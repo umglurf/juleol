@@ -1,7 +1,7 @@
 import pytest
 import juleol
 import juleol.db
-from flask_bcrypt import Bcrypt
+from unittest.mock import patch
 
 class TestConfig(object):
   DEBUG = True
@@ -16,13 +16,23 @@ def client():
     app = juleol.create_app(TestConfig)
     client = app.test_client()
     
-    bcrypt = Bcrypt()
     with app.app_context():
-        juleol.db.db.create_all()
-        tasting = juleol.db.Tastings(year=2000)
-        juleol.db.db.session.add(tasting)
-        participant = juleol.db.Participants(tasting = tasting, name = 'test', password = bcrypt.generate_password_hash('test'))
-        juleol.db.db.session.add(participant)
-        juleol.db.db.session.commit()
-        
-    yield client
+        with patch('juleol.db.Participants') as MockParticipant:
+            with patch('juleol.db.Tastings') as MockTastings:
+                from flask_bcrypt import Bcrypt
+                bcrypt = Bcrypt()
+
+                test_tasting = juleol.db.Tastings()
+                test_tasting.year = 2000
+                MockTastings.query.all.return_value = [test_tasting]
+                MockTastings.query.filter.return_value.filter.return_value.first.return_value = test_tasting
+
+                test_participant = juleol.db.Participants()
+                test_participant.id = 1
+                test_participant.name = 'test'
+                test_participant.password = bcrypt.generate_password_hash('test')
+                test_participant.tasting = test_tasting
+                MockParticipant.query.filter.return_value.first.return_value = test_participant
+                MockParticipant.query.filter.return_value.filter.return_value.first.return_value = test_participant
+    
+                yield client
