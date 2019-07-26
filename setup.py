@@ -11,6 +11,7 @@ setup(
         'flask~=1.0',
         'flask-bcrypt',
         'Flask-Dance~=1.0',
+        'flask_migrate',
         'flask_sqlalchemy',
         'PyMySQL',
         'wtforms',
