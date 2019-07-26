@@ -39,14 +39,14 @@
     <td class="row_index">{{ loop.index }}</td>
     <td>{{ score.number }}</td>
     <td onclick="show_details('#score_detail_{{ score.number }}')">{{ score.name }} ⇣</td>
-    <td> {{ score.sum }}</td>
+    <td>{{ score.sum }}</td>
     {%- if score.avg %}
-    <td> {{ "{:.2f}".format(score.avg) }}</td>
+    <td>{{ "{:.2f}".format(score.avg) }}</td>
     {%- else %}
     <td/>
     {%- endif %}
     {%- if score.std %}
-    <td> {{ "{:.2f}".format(score.std) }}</td>
+    <td>{{ "{:.2f}".format(score.std) }}</td>
     {%- else %}
     <td/>
     {%- endif %}

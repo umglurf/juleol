@@ -4,7 +4,7 @@ from functools import wraps
 from juleol import db
 from juleol.haavard import haavard
 from sqlalchemy import exc
-from wtforms import Form, IntegerField, validators, HiddenField, PasswordField, TextField
+from wtforms import Form, IntegerField, validators, HiddenField, PasswordField, StringField
 from wtforms.widgets.html5 import NumberInput
 
 bp = Blueprint('admin', __name__)
@@ -16,17 +16,17 @@ class TastingForm(Form):
     beers = IntegerField('Number of beers', [validators.input_required(), validators.NumberRange(1, 100)], widget = NumberInput(min=1, max=100))
 
 class ParticipantForm(Form):
-    name = TextField("Name", [validators.input_required(), validators.Length(1, 255)])
+    name = StringField("Name", [validators.input_required(), validators.Length(1, 255)])
     password = PasswordField("Password", [validators.input_required(), validators.Length(1,255)])
 
 class ParticipantPasswordForm(Form):
     password = PasswordField("Password", [validators.input_required(), validators.Length(1,255)])
 
 class BeerNameForm(Form):
-    name = TextField("Name", [validators.input_required(), validators.Length(1, 255)])
+    name = StringField("Name", [validators.input_required(), validators.Length(1, 255)])
 
 class NoteForm(Form):
-    note = TextField("Note", [validators.input_required()])
+    note = StringField("Note", [validators.input_required()])
 
 def login_required(f):
     @wraps(f)
@@ -57,13 +57,13 @@ def admin_index():
     tastings = db.Tastings.query.all()
     return render_template('admin.html', tastings = tastings, form = form)
 
-@bp.route('/admin/<int:year>', methods=["GET", "POST"])
+@bp.route('/admin/<int:year>', methods=["GET"])
 @login_required
 def admin_year(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
         flash("Invalid year")
-        return redirect(url_for('admin_index'))
+        return redirect(url_for('admin.admin_index'))
 
     participant_form = ParticipantForm(request.form)
     note_form = NoteForm(request.form)
@@ -75,7 +75,7 @@ def new_participant(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
         flash("Invalid year")
-        return redirect(url_for('admin_index'))
+        return redirect(url_for('admin.admin_index'))
 
     form = ParticipantForm(request.form)
     if form.validate():
@@ -98,7 +98,7 @@ def new_participant(year):
             flash("Participant {} added".format(form.name.data))
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            app.logger.error("Error creating participant: {}".format(e))
+            current_app.logger.error("Error creating participant: {}".format(e))
             flash("Error creating participant")
     else:
         flash("Invalid form data")
@@ -111,7 +111,7 @@ def update_participant(year, participant_id):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
         flash("Invalid year")
-        return redirect(url_for('admin_index'))
+        return redirect(url_for('admin.admin_index'))
 
     participant = db.Participants.query.filter(db.Participants.tasting == tasting).filter(db.Participants.id == participant_id).first()
     if not participant:
@@ -123,6 +123,7 @@ def update_participant(year, participant_id):
         try:
             password = bcrypt.generate_password_hash(form.password.data)
             participant.password = password
+            db.db.session.add(participant)
             db.db.session.commit()
             flash("Password updated")
         except exc.SQLAlchemyError as e:
@@ -140,7 +141,7 @@ def new_note(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
         flash("Invalid year")
-        return redirect(url_for('admin_index'))
+        return redirect(url_for('admin.admin_index'))
 
     form = NoteForm(request.form)
     if form.validate():
@@ -151,7 +152,7 @@ def new_note(year):
             flash("Note added")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            app.logger.error("Error creating note: {}".format(e))
+            current_app.logger.error("Error creating note: {}".format(e))
             flash("Error creating note")
     else:
         flash("Invalid form data")
@@ -178,7 +179,7 @@ def update_note(note_id):
                 return jsonify(message="Note updated")
             except exc.SQLAlchemyError as e:
                 db.db.session.rollback()
-                current-app.logger.error("Error updating note: {}".format(e))
+                current_app.logger.error("Error updating note: {}".format(e))
                 response = jsonify(error = "Error updating note")
                 response.status_code = 500
                 return response
@@ -193,7 +194,7 @@ def update_note(note_id):
             return jsonify(message="Note deleted")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            current-app.logger.error("Error deleting note: {}".format(e))
+            current_app.logger.error("Error deleting note: {}".format(e))
             response = jsonify(error = "Error deleting note")
             response.status_code = 500
             return response
@@ -215,7 +216,7 @@ def beer(beer_id):
             return jsonify(message="Beer name updated")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            current-app.logger.error("Error updating password: {}".format(e))
+            current_app.logger.error("Error updating password: {}".format(e))
             response = jsonify(error = "Error updating beer name")
             response.status_code = 500
             return response
