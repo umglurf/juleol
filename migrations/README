@@ -1,0 +1,6 @@
+Set FLASK_APP variable and set the SQLALCHEMY_DATABASE_URI configuration option.
+You can then run
+```
+flask db upgrade
+```
+to initialize the database or upgrade the schema

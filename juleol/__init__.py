@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_migrate import Migrate
 import os
 
 def create_app(test_config=None):
@@ -19,5 +20,6 @@ def create_app(test_config=None):
     app.register_blueprint(haavard_bp, url_prefix="/admin/login")
 
     db.db.init_app(app)
+    migrate = Migrate(app, db.db)
 
     return app
