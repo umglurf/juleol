@@ -59,6 +59,4 @@ def admin_noauth_client(monkeypatch):
         storage = MemoryStorage()
         monkeypatch.setattr(app.blueprints['oauth_haavard'], "storage", storage)
 
-        with patch('juleol.db.Tastings') as MockTastings:
-
         yield client
