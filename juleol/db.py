@@ -12,6 +12,7 @@ class Tastings(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     year = db.Column(db.Integer, nullable=False, unique=True)
     beers = db.relationship('Beers', back_populates='tasting')
+    heats = db.relationship('Heats', back_populates='tasting')
     participants = db.relationship('Participants', back_populates='tasting')
     notes = db.relationship('Notes', back_populates='tasting')
     score_tastes = db.relationship('ScoreTaste', back_populates='tasting')
@@ -30,6 +31,8 @@ class Beers(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     number = db.Column(db.SmallInteger, nullable=False)
+    heat_id = db.Column(db.Integer, db.ForeignKey('heats.id'), nullable=True)
+    heat = db.relationship('Heats', back_populates='beers')
     tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
     tasting = db.relationship('Tastings', back_populates='beers')
     score_tastes = db.relationship('ScoreTaste', back_populates='beer')
@@ -38,6 +41,14 @@ class Beers(db.Model):
     score_looks = db.relationship('ScoreLook', back_populates='beer')
     score_xmases = db.relationship('ScoreXmas', back_populates='beer')
     __table_args__ = (db.UniqueConstraint('number', 'tasting_id'), )
+
+class Heats(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
+    tasting = db.relationship('Tastings', back_populates='heats')
+    beers = db.relationship('Beers', back_populates='heat')
+    __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
 
 class Participants(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
