@@ -22,11 +22,17 @@ class ParticipantForm(Form):
 class ParticipantPasswordForm(Form):
     password = PasswordField("Password", [validators.input_required(), validators.Length(1,255)])
 
+class BeerHeatForm(Form):
+    heat = IntegerField("Heat", [validators.input_required()])
+
 class BeerNameForm(Form):
     name = StringField("Name", [validators.input_required(), validators.Length(1, 255)])
 
 class NoteForm(Form):
     note = StringField("Note", [validators.input_required()])
+
+class HeatForm(Form):
+    name = StringField("Heat", [validators.input_required()])
 
 def login_required(f):
     @wraps(f)
@@ -67,7 +73,8 @@ def admin_year(year):
 
     participant_form = ParticipantForm(request.form)
     note_form = NoteForm(request.form)
-    return render_template('admin_year.html', tasting = tasting, participant_form=participant_form, note_form=note_form)
+    heat_form = HeatForm(request.form)
+    return render_template('admin_year.html', tasting = tasting, participant_form=participant_form, note_form=note_form, heat_form=heat_form)
 
 @bp.route('/admin/<int:year>/participant', methods=["POST"])
 @login_required
@@ -134,6 +141,70 @@ def update_participant(year, participant_id):
         flash("Invalid form data")
 
     return redirect("/admin/{}".format(year))
+
+@bp.route('/admin/<int:year>/heat', methods=["POST"])
+@login_required
+def new_heat(year):
+    tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
+    if not tasting:
+        flash("Invalid year")
+        return redirect(url_for('admin.admin_index'))
+
+    form = HeatForm(request.form)
+    if form.validate():
+        try:
+            heat = db.Heats(tasting = tasting, name=form.name.data)
+            db.db.session.add(heat)
+            db.db.session.commit()
+            flash("Heat added")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            current_app.logger.error("Error creating heat: {}".format(e))
+            flash("Error creating heat")
+    else:
+        flash("Invalid form data")
+
+    return redirect("/admin/{}".format(year))
+
+@bp.route('/admin/heat/<int:heat_id>', methods=["GET", "PUT", "DELETE"])
+@login_required
+def update_heat(heat_id):
+    heat = db.Heats.query.filter(db.Heats.id == heat_id).first()
+    if not heat:
+        response = jsonify(error = "Invalid heat id")
+        response.status_code = 404
+        return response
+    if request.method == 'GET':
+        return jsonify({'id': heat.id, 'name': heat.name})
+    elif request.method == 'PUT':
+        form = HeatForm(request.form)
+        if form.validate():
+            try:
+                heat.name = form.name.data
+                db.db.session.add(heat)
+                db.db.session.commit()
+                return jsonify(message="Heat updated")
+            except exc.SQLAlchemyError as e:
+                db.db.session.rollback()
+                current_app.logger.error("Error updating heat: {}".format(e))
+                response = jsonify(error = "Error updating heat")
+                response.status_code = 500
+                return response
+        else:
+            response = jsonify(error = "Invalid arguments")
+            response.status_code = 400
+            return response
+    elif request.method == 'DELETE':
+        try:
+            db.db.session.delete(heat)
+            db.db.session.commit()
+            return jsonify(message="Heat deleted")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            current_app.logger.error("Error deleting heat: {}".format(e))
+            response = jsonify(error = "Error deleting heat")
+            response.status_code = 500
+            return response
 
 @bp.route('/admin/<int:year>/note', methods=["POST"])
 @login_required
@@ -207,20 +278,58 @@ def beer(beer_id):
         response = jsonify(error = "Invalid beer id")
         response.status_code = 404
         return response
-    form = BeerNameForm(request.form)
-    if form.validate():
+    heat_form = BeerHeatForm(request.form)
+    name_form = BeerNameForm(request.form)
+    if heat_form.validate():
+        heat = db.Heats.query.filter(db.Heats.tasting == beer.tasting).filter(db.Heats.id == heat_form.heat.data).first()
+        if not heat:
+            response = jsonify(error = 'Invalid heat')
+            response.status_code = 404
+            return response
         try:
-            beer.name = form.name.data
+            beer.heat = heat
+            db.db.session.add(beer)
+            db.db.session.commit()
+            return jsonify(message="Beer heat updated")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            current_app.logger.error("Error updating beer: {}".format(e))
+            response = jsonify(error = "Error updating beer heat")
+            response.status_code = 500
+            return response
+    if name_form.validate():
+        try:
+            beer.name = name_form.name.data
             db.db.session.add(beer)
             db.db.session.commit()
             return jsonify(message="Beer name updated")
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            current_app.logger.error("Error updating password: {}".format(e))
+            current_app.logger.error("Error updating beer: {}".format(e))
             response = jsonify(error = "Error updating beer name")
             response.status_code = 500
             return response
     else:
         response = jsonify(error = "Invalid arguments")
         response.status_code = 400
+        return response
+
+@bp.route('/admin/beer/<int:beer_id>/heat', methods=["DELETE"])
+@login_required
+def beer_heat_delete(beer_id):
+    beer = db.Beers.query.filter(db.Beers.id == beer_id).first()
+    if not beer:
+        response = jsonify(error = "Invalid beer id")
+        response.status_code = 404
+        return response
+    try:
+        beer.heat = None
+        db.db.session.add(beer)
+        db.db.session.commit()
+        return jsonify(message="Beer heat deleted")
+    except exc.SQLAlchemyError as e:
+        db.db.session.rollback()
+        current_app.logger.error("Error updating beer: {}".format(e))
+        response = jsonify(error = "Error deleting beer heat")
+        response.status_code = 500
         return response

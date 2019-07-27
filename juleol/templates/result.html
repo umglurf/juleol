@@ -22,6 +22,17 @@
 {% endif %}
 
 <h2>Result</h2>
+{% if tasting.heats %}
+<p>
+<label for="heat">Heat</label>
+<select id="heatselect" name="heat" onchange="filter_heat();">
+  <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
+  {% for h in tasting.heats %}
+  <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
+  {% endfor %}
+</select>
+</p>
+{% endif %}
 <table id="resulttable" class="tablesorter">
   <thead>
   <tr>
@@ -31,6 +42,9 @@
     <th style="width: 7em">Sum</th>
     <th style="width: 7em">Average</th>
     <th style="width: 7em">Standard deviation</th>
+    {%- if tasting.heats %}
+    <th>Heat</th>
+    {%- endif %}
   </tr>
   </thead>
   <tbody>
@@ -49,6 +63,9 @@
     <td>{{ "{:.2f}".format(score.std) }}</td>
     {%- else %}
     <td/>
+    {%- endif %}
+    {%- if tasting.heats %}
+    <td>{{ score.heat_name }}</td>
     {%- endif %}
   </tr>
   <tr class="score_detail" id="score_detail_{{ score.number }}">
@@ -90,7 +107,18 @@
 <script>
 function show_details(id) {
   $(id).toggle();
-}
+};
+
+function filter_heat() {
+  url = new URL(window.location);
+  heat = $("#heatselect")[0].value;
+  if(heat == "All") {
+    url.search = "";
+  } else {
+    url.search = "heat=" + heat;
+  };
+  window.location = url;
+};
 
 $(document).ready(function() {
   $('#resulttable').tablesorter({

@@ -17,19 +17,45 @@
 <p>
 <a href="#" id="prev">Previous</a>
 <select id="select_beer">
-{% for beer in g.participant.tasting.beers %}
-<option>{{ beer.number }}</option>
+{% if heat %}
+{% set beers = g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) %}
+{% else %}
+{% set beers = g.participant.tasting.beers %}
+{% endif %}
+{% for beer in beers %}
+{% if heat %}
+<option value="{{ beer.number }}">{{ loop.index }} ({{ beer.number }})</option>
+{% else %}
+<option value="{{ beer.number }}">{{ beer.number }}</option>
+{% endif %}
 {% endfor %}
 </select>
 <a href="#" id="next">Next</a>
 </p>
 
+{% if g.participant.tasting.heats %}
+<p>
+<label for="heat">Heat</label>
+<select id="heatselect" name="heat" onchange="filter_heat();">
+  <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
+  {% for h in g.participant.tasting.heats %}
+  <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
+  {% endfor %}
+</select>
+</p>
+{% endif %}
 <p><a href="/result/{{ g.participant.tasting.year }}">Result</a></p>
 <p><a href="/">Home</a></p>
 
 <script>
   const year = {{ g.participant.tasting.year }};
+  {% if heat %}
+  const beers = {{ g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) | map(attribute='number') | list | tojson }};
+  const heat = true;
+  {% else %}
   const beers = {{ g.participant.tasting.beers | map(attribute='number') | list | tojson }};
+  const heat = false;
+  {% endif %}
   var current_beer_pos = 0;
   const score_types = ["look", "smell", "taste", "aftertaste", "xmas"];
 
@@ -99,7 +125,11 @@
       dataType: "json",
       success: function(data, textStatus, xhr) {
         $("p.error").hide();
-        $("h2#rating_header").text("Rating for beer " + beer_number);
+        if(heat) {
+          $("h2#rating_header").text("Rating for beer " + (current_beer_pos + 1) + " (" + beer_number + ")");
+        } else {
+          $("h2#rating_header").text("Rating for beer " + beer_number);
+        };
         for (let key of score_types) {
           if(data[key] != null) {
             $("input#" + key)[0].value = data[key];
@@ -150,7 +180,18 @@
   });
 
   $(document).ready(function() {
-    get_beer_rating(1);
+    get_beer_rating($("#select_beer")[0].options[0].value);
   });
+
+  function filter_heat() {
+    url = new URL(window.location);
+    heat_id = $("#heatselect")[0].value;
+    if(heat_id == "All") {
+      url.search = "";
+    } else {
+      url.search = "heat=" + heat_id;
+    };
+    window.location = url;
+  };
 </script>
 {% endblock %}

@@ -62,13 +62,22 @@ def test_result(client):
     beer_sum.sum = 10
     beer_sum.avg = 42
     beer_sum.std = 13
+    beer_sum.heat_id = None
+    beer_sum2 = MagicMock()
+    beer_sum2.name = 'test 2'
+    beer_sum2.number = 2
+    beer_sum2.sum = 10
+    beer_sum2.avg = 42
+    beer_sum2.std = 13
+    beer_sum2.heat_id = 1
     participant = MagicMock()
     participant.id = 1
     participant.name = 'foo'
     db.Participants.query.filter.return_value.all.return_value = [participant]
     with patch('juleol.db.get_beer_scores', return_value = {
         'totals': [
-            beer_sum
+            beer_sum,
+            beer_sum2
         ],
         'details': []
         }):
@@ -78,6 +87,7 @@ def test_result(client):
         data = json.loads(ret.data)
         assert 'beer_scores' in data
         assert 'participants' in data
+        assert len(data['beer_scores']) == 2
         assert data['beer_scores']['1']['name'] == 'test'
         assert data['beer_scores']['1']['sum'] == 10
         assert data['beer_scores']['1']['average'] == 42
@@ -91,6 +101,15 @@ def test_result(client):
         assert b'<td>10</td>' in ret.data
         assert b'<td>42.00</td>' in ret.data
         assert b'<td>13.00</td>' in ret.data
+        assert b'<tr id="beer_2">' in ret.data
+
+        ret = client.get('/result/2000?heat=1', headers={'Content-Type': 'application/json'})
+        assert ret.status_code == 200
+        data = json.loads(ret.data)
+        assert 'beer_scores' in data
+        assert 'participants' in data
+        assert len(data['beer_scores']) == 1
+
 
 def test_invalid_result_year(client):
     db.Tastings.query.filter.return_value.first.return_value = None
@@ -99,11 +118,38 @@ def test_invalid_result_year(client):
     assert ret.headers['Location'] == 'http://localhost/'
 
 def test_result_participant(client):
-    with patch('juleol.db.participant_scores', return_value = {
-        'scores': []
-        }):
+    score = MagicMock()
+    score.number = 1
+    score.name = 'test 1'
+    score.look = 1
+    score.smell = 1
+    score.taste = 1
+    score.aftertaste = 1
+    score.xmas = 1
+    score.heat_id = None
+    score2 = MagicMock()
+    score2.number = 1
+    score2.name = 'test 2'
+    score2.look = 1
+    score2.smell = 1
+    score2.taste = 1
+    score2.aftertaste = 1
+    score2.xmas = 1
+    score2.heat_id = 1
+    score2.heat_name = 'test'
+    with patch('juleol.db.participant_scores', return_value = [
+        score,
+        score2
+        ]):
         ret = client.get('/result/2000/1')
         assert ret.status_code == 200
+        assert b'<td>test 1</td>' in ret.data
+        assert b'<td>test 2</td>' in ret.data
+
+        ret = client.get('/result/2000/1?heat=1')
+        assert ret.status_code == 200
+        assert not b'<td>test 1</td>' in ret.data
+        assert b'<td>test 2</td>' in ret.data
 
 def test_result_invalid_participant(client):
     db.Participants.query.join.return_value.filter.return_value.filter.return_value.one.return_value = None

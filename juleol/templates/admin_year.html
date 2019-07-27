@@ -28,6 +28,81 @@
     });
   };
 
+  function update_beer_heat(obj, id) {
+    var heat = obj.value;
+    var data;
+    var method;
+    var url;
+    if(heat == 'None') {
+      data = {};
+      method = 'DELETE';
+      url = "/admin/beer/" + id + "/heat";
+    } else {
+      data = {"heat": heat };
+      method = "PUT";
+      url = "/admin/beer/" + id;
+    };
+    $.ajax(url, {
+      method: method,
+      data: data,
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating beer";
+        }
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  };
+
+  function update_heat(obj, id) {
+    var heat = obj.value;
+    $.ajax("/admin/heat/" + id, {
+      method: "PUT",
+      data: { "name": heat },
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating heat";
+        }
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  };
+
+  function delete_heat(obj, id) {
+    var name = obj.value;
+    $.ajax("/admin/heat/" + id, {
+      method: "DELETE",
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+        $(obj).parent().remove()
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error deleting heat";
+        }
+        $(obj).siblings("p").text(msg);
+        $(obj).siblings("p").show();
+      }
+    });
+  };
+
   function update_note(obj, id) {
     var note = obj.value;
     $.ajax("/admin/note/" + id, {
@@ -78,10 +153,33 @@
   {% for beer in tasting.beers %}
   <dt>Beer {{ beer.number }}</dt>
   <dd><input type="text" value="{{ beer.name }}" onfocusout="update_beer_name(this, {{ beer.id }});"/>
+  <select onchange="update_beer_heat(this, {{ beer.id }});">
+    <option value="None" {% if not beer.heat %}selected="selected"{% endif %}>None</option>
+    {% for heat in tasting.heats %}
+    <option value="{{ heat.id }}"{% if beer.heat.id == heat.id %}selected="selected"{% endif %}>{{ heat.name }}</option>
+    {% endfor %}
+  </select>
   <p class="error" style="display: none;"/>
   </dd>
   {% endfor %}
 </dl>
+
+<h2>Heats</h2>
+<ul>
+  {% for heat in tasting.heats %}
+  <li>
+  <input type="text" value="{{ heat.name }}" onfocusout="update_heat(this, {{ heat.id }});"/>
+  <input type="button" value="Delete" onclick="delete_heat(this, {{ heat.id }});"/>
+  <p class="error" style="display: none;"/>
+  </li>
+  {% endfor %}
+</ul>
+<form action="/admin/{{ tasting.year }}/heat" method="post">
+  <dl>
+    {{ render_field(heat_form.name) }}
+  </dl>
+  <p><input type=submit value="Add heat"></p>
+</form>
 
 <h2>Notes</h2>
 <ul>

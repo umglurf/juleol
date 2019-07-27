@@ -135,12 +135,13 @@ def get_beer_scores(tasting):
     for beer in Beers.query.filter(Beers.tasting_id == tasting.id).all():
         details[beer.number] = db.session.query(scores.c.sum, Participants.name).join(Participants, Participants.id == scores.c.participant_id).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.id == beer.id).all()
     return {
-            "totals": db.session.query(db.func.sum(scores.c.sum).label('sum'), db.func.avg(scores.c.sum).label('avg'), db.func.std(scores.c.sum).label('std'), Beers.name, Beers.number).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.tasting_id == tasting.id).group_by(scores.c.beer_id).all(),
+            "totals": db.session.query(db.func.sum(scores.c.sum).label('sum'), db.func.avg(scores.c.sum).label('avg'), db.func.std(scores.c.sum).label('std'), Beers.name.label('name'), Beers.number.label('number'), Heats.id.label('heat_id'), Heats.name.label('heat_name')).join(Beers, Beers.id == scores.c.beer_id).join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).filter(Beers.tasting_id == tasting.id).group_by(scores.c.beer_id).all(),
             "details": details
             }
 
 def participant_scores(participant):
-    scores = db.session.query(Beers.number, Beers.name, ScoreLook.score.label('look'), ScoreSmell.score.label('smell'), ScoreTaste.score.label('taste'), ScoreAftertaste.score.label('aftertaste'), ScoreXmas.score.label('xmas')).\
+    scores = db.session.query(Beers.number.label('number'), Beers.name.label('name'), Heats.id.label('heat_id'), Heats.name.label('heat_name'), ScoreLook.score.label('look'), ScoreSmell.score.label('smell'), ScoreTaste.score.label('taste'), ScoreAftertaste.score.label('aftertaste'), ScoreXmas.score.label('xmas')).\
+            join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).\
             join(ScoreLook).\
             join(ScoreSmell).\
             join(ScoreTaste).\
