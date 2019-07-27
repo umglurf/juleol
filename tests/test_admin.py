@@ -191,6 +191,91 @@ def test_update_participant(admin_client):
                 assert b'Error updating password' in ret.data
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
+def test_create_heat(admin_client):
+    with patch('juleol.db.Tastings') as TastingsMock:
+        test_tasting = db.Tastings()
+        test_tasting.year = 2000
+        TastingsMock.query.filter.return_value.first.return_value = test_tasting
+        TastingsMock.query.filter.return_value.first.return_value = None
+        ret = admin_client.post('/admin/2000/heat')
+        assert ret.status_code == 302
+        ret = admin_client.get('/admin/')
+        assert b'Invalid year' in ret.data
+
+        TastingsMock.query.filter.return_value.first.return_value = test_tasting
+        with patch('juleol.db.Heats') as HeatsMock:
+            ret = admin_client.post('/admin/2000/heat')
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/admin/2000'
+            ret = admin_client.get('/admin/2000')
+            assert b'Invalid form data' in ret.data
+
+            with patch('juleol.db.db.session') as SessionMock:
+                ret = admin_client.post('/admin/2000/heat', data={'name': 'test'})
+                assert ret.status_code == 302
+                assert ret.headers['Location'] == 'http://localhost/admin/2000'
+                assert HeatsMock.mock_calls[0][2]['name'] == 'test'
+                assert HeatsMock.mock_calls[0][2]['tasting'] == test_tasting
+                assert SessionMock.mock_calls[0][0] == 'add'
+                assert SessionMock.mock_calls[0][1] == (db.Heats(name = 'test', tasting = test_tasting), )
+                assert SessionMock.mock_calls[1][0] == 'commit'
+
+                SessionMock.reset_mock()
+                SessionMock.commit.side_effect = exc.SQLAlchemyError()
+                ret = admin_client.post('/admin/2000/heat', data={'name': 'test'})
+                assert ret.status_code == 302
+                assert ret.headers['Location'] == 'http://localhost/admin/2000'
+                ret = admin_client.get('/admin/2000')
+                assert b'Error creating heat' in ret.data
+                assert SessionMock.mock_calls[2][0] == 'rollback'
+
+def test_get_update_heat(admin_client):
+    with patch('juleol.db.Heats') as HeatsMock:
+        db.Heats.query.filter.return_value.first.return_value = None
+        ret = admin_client.get('/admin/heat/1')
+        assert ret.status_code == 404
+        assert json.loads(ret.data)['error'] == 'Invalid heat id'
+
+        test_heat = db.Heats()
+        test_heat.id = 1
+        test_heat.name = 'test'
+        db.Heats.query.filter.return_value.first.return_value = test_heat
+        ret = admin_client.get('/admin/heat/1')
+        assert ret.status_code == 200
+        data = json.loads(ret.data)
+        assert data['id'] == 1
+        assert data['name'] == 'test'
+
+        with patch('juleol.db.db.session') as SessionMock:
+            ret = admin_client.put('/admin/heat/1')
+            assert ret.status_code == 400
+            assert json.loads(ret.data)['error'] == 'Invalid arguments'
+            ret = admin_client.put('/admin/heat/1', data = {'name': 'new test'})
+            assert ret.status_code == 200
+            assert json.loads(ret.data)['message'] == 'Heat updated'
+            assert test_heat.name == 'new test'
+            assert SessionMock.mock_calls[0][0] == 'add'
+            assert SessionMock.mock_calls[0][1] == (test_heat,)
+            assert SessionMock.mock_calls[1][0] == 'commit'
+
+            SessionMock.reset_mock()
+            ret = admin_client.delete('/admin/heat/1')
+            assert ret.status_code == 200
+            assert json.loads(ret.data)['message'] == 'Heat deleted'
+            assert SessionMock.mock_calls[0][0] == 'delete'
+            assert SessionMock.mock_calls[0][1] == (test_heat,)
+            assert SessionMock.mock_calls[1][0] == 'commit'
+
+            SessionMock.reset_mock()
+            SessionMock.commit.side_effect = exc.SQLAlchemyError()
+            ret = admin_client.put('/admin/heat/1', data = {'name': 'new test'})
+            assert ret.status_code == 500
+            assert json.loads(ret.data)['error'] == 'Error updating heat'
+            ret = admin_client.delete('/admin/heat/1')
+            assert ret.status_code == 500
+            assert json.loads(ret.data)['error'] == 'Error deleting heat'
+            assert SessionMock.mock_calls[2][0] == 'rollback'
+
 def test_create_note(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
         test_tasting = db.Tastings()
@@ -309,4 +394,62 @@ def test_update_beer(admin_client):
             assert SessionMock.mock_calls[0][0] == 'add'
             assert SessionMock.mock_calls[0][1] == (test_beer,)
             assert SessionMock.mock_calls[1][0] == 'commit'
+            assert SessionMock.mock_calls[2][0] == 'rollback'
+
+            with patch('juleol.db.Heats') as HeatsMock:
+                test_heat = db.Heats()
+                test_heat.id = 1
+                test_heat.name = 'test'
+
+                db.Heats.query.filter.return_value.filter.return_value.first.return_value = None
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                assert ret.status_code == 404
+                assert json.loads(ret.data)['error'] == 'Invalid heat'
+
+                db.Heats.query.filter.return_value.filter.return_value.first.return_value = test_heat
+                SessionMock.reset_mock()
+                SessionMock.commit.side_effect = None
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                assert ret.status_code == 200
+                assert json.loads(ret.data)['message'] == 'Beer heat updated'
+                assert test_beer.name == 'new name'
+                assert SessionMock.mock_calls[0][0] == 'add'
+                assert SessionMock.mock_calls[0][1] == (test_beer,)
+                assert SessionMock.mock_calls[1][0] == 'commit'
+                assert test_beer.heat == test_heat
+
+                SessionMock.commit.side_effect = exc.SQLAlchemyError()
+                SessionMock.reset_mock()
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                assert ret.status_code == 500
+                assert json.loads(ret.data)['error'] == 'Error updating beer heat'
+                assert SessionMock.mock_calls[2][0] == 'rollback'
+
+def test_delete_beer_heat(admin_client):
+    with patch('juleol.db.Beers') as BeersMock:
+        db.Beers.query.filter.return_value.first.return_value = None
+        ret = admin_client.delete('/admin/beer/1/heat')
+        assert ret.status_code == 404
+        assert json.loads(ret.data)['error'] == 'Invalid beer id'
+
+        with patch('juleol.db.db.session') as SessionMock:
+            test_beer = db.Beers()
+            test_beer.id = 1
+            test_beer.number = 1
+            test_beer.name = 'test beer 1'
+            test_beer.heat = 1
+            db.Beers.query.filter.return_value.first.return_value = test_beer
+            ret = admin_client.delete('/admin/beer/1/heat')
+            assert ret.status_code == 200
+            assert json.loads(ret.data)['message'] == 'Beer heat deleted'
+            assert SessionMock.mock_calls[0][0] == 'add'
+            assert SessionMock.mock_calls[0][1] == (test_beer,)
+            assert SessionMock.mock_calls[1][0] == 'commit'
+            assert test_beer.heat is None
+
+            SessionMock.commit.side_effect = exc.SQLAlchemyError()
+            SessionMock.reset_mock()
+            ret = admin_client.delete('/admin/beer/1/heat')
+            assert ret.status_code == 500
+            assert json.loads(ret.data)['error'] == 'Error deleting beer heat'
             assert SessionMock.mock_calls[2][0] == 'rollback'

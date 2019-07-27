@@ -12,6 +12,7 @@ class Tastings(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     year = db.Column(db.Integer, nullable=False, unique=True)
     beers = db.relationship('Beers', back_populates='tasting')
+    heats = db.relationship('Heats', back_populates='tasting')
     participants = db.relationship('Participants', back_populates='tasting')
     notes = db.relationship('Notes', back_populates='tasting')
     score_tastes = db.relationship('ScoreTaste', back_populates='tasting')
@@ -30,6 +31,8 @@ class Beers(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     number = db.Column(db.SmallInteger, nullable=False)
+    heat_id = db.Column(db.Integer, db.ForeignKey('heats.id'), nullable=True)
+    heat = db.relationship('Heats', back_populates='beers')
     tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
     tasting = db.relationship('Tastings', back_populates='beers')
     score_tastes = db.relationship('ScoreTaste', back_populates='beer')
@@ -38,6 +41,14 @@ class Beers(db.Model):
     score_looks = db.relationship('ScoreLook', back_populates='beer')
     score_xmases = db.relationship('ScoreXmas', back_populates='beer')
     __table_args__ = (db.UniqueConstraint('number', 'tasting_id'), )
+
+class Heats(db.Model):
+    id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
+    tasting = db.relationship('Tastings', back_populates='heats')
+    beers = db.relationship('Beers', back_populates='heat')
+    __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
 
 class Participants(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -124,12 +135,13 @@ def get_beer_scores(tasting):
     for beer in Beers.query.filter(Beers.tasting_id == tasting.id).all():
         details[beer.number] = db.session.query(scores.c.sum, Participants.name).join(Participants, Participants.id == scores.c.participant_id).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.id == beer.id).all()
     return {
-            "totals": db.session.query(db.func.sum(scores.c.sum).label('sum'), db.func.avg(scores.c.sum).label('avg'), db.func.std(scores.c.sum).label('std'), Beers.name, Beers.number).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.tasting_id == tasting.id).group_by(scores.c.beer_id).all(),
+            "totals": db.session.query(db.func.sum(scores.c.sum).label('sum'), db.func.avg(scores.c.sum).label('avg'), db.func.std(scores.c.sum).label('std'), Beers.name.label('name'), Beers.number.label('number'), Heats.id.label('heat_id'), Heats.name.label('heat_name')).join(Beers, Beers.id == scores.c.beer_id).join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).filter(Beers.tasting_id == tasting.id).group_by(scores.c.beer_id).all(),
             "details": details
             }
 
 def participant_scores(participant):
-    scores = db.session.query(Beers.number, Beers.name, ScoreLook.score.label('look'), ScoreSmell.score.label('smell'), ScoreTaste.score.label('taste'), ScoreAftertaste.score.label('aftertaste'), ScoreXmas.score.label('xmas')).\
+    scores = db.session.query(Beers.number.label('number'), Beers.name.label('name'), Heats.id.label('heat_id'), Heats.name.label('heat_name'), ScoreLook.score.label('look'), ScoreSmell.score.label('smell'), ScoreTaste.score.label('taste'), ScoreAftertaste.score.label('aftertaste'), ScoreXmas.score.label('xmas')).\
+            join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).\
             join(ScoreLook).\
             join(ScoreSmell).\
             join(ScoreTaste).\

@@ -2,6 +2,7 @@ from flask import Flask, Blueprint, render_template, request, session, jsonify, 
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
+import re
 from sqlalchemy import exc
 from wtforms import Form, IntegerField, validators, HiddenField, PasswordField, StringField, SelectField
 from wtforms.widgets.html5 import NumberInput
@@ -69,6 +70,12 @@ def result(year):
         return redirect(url_for('view.index'))
 
     beer_scores = db.get_beer_scores(tasting)
+    heat = request.args.get('heat')
+    if heat is not None and re.match("^[0-9]{1,2}$", heat):
+        heat = int(heat)
+        beer_scores['totals'] = [s for s in beer_scores['totals'] if s.heat_id == heat]
+    else:
+        heat = None
     participants = db.Participants.query.filter(db.Participants.tasting_id == tasting.id).all()
 
     if request.headers.get('Content-Type', '') == 'application/json':
@@ -89,7 +96,7 @@ def result(year):
             result['participants'][participant.id] = { 'name': participant.name }
         return jsonify(result)
     else:
-        return render_template('result.html', beer_scores = beer_scores, tasting = tasting, participants = participants)
+        return render_template('result.html', beer_scores = beer_scores, tasting = tasting, participants = participants, heat=heat)
 
 @bp.route('/result/<int:year>/<int:participant_id>')
 def participant_result(year, participant_id):
@@ -99,7 +106,13 @@ def participant_result(year, participant_id):
         return redirect(url_for('view.index'))
 
     scores = db.participant_scores(participant)
-    return render_template('participant_result.html', participant = participant, scores = scores)
+    heat = request.args.get('heat')
+    if heat is not None and re.match("^[0-9]{1,2}$", heat):
+        heat = int(heat)
+        scores = [s for s in scores if s.heat_id == heat]
+    else:
+        heat = None
+    return render_template('participant_result.html', participant = participant, scores = scores, heat = heat)
 
 @bp.route('/rate/<int:year>', methods=["GET"])
 @login_required
@@ -108,7 +121,12 @@ def rate(year):
         flash("Invalid year for this user", "error")
         return redirect(url_for('view.index'))
     form = RatingForm()
-    return render_template('rate.html', form=form)
+    heat = request.args.get('heat')
+    if heat is not None and re.match("^[0-9]{1,2}$", heat):
+        heat = int(heat)
+    else:
+        heat = None
+    return render_template('rate.html', form=form, heat=heat)
 
 @bp.route('/rate/<int:year>/<int:beer_number>', methods=["GET", "PUT"])
 @login_required
