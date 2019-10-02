@@ -1,6 +1,10 @@
-{% macro render_field(field) %}
+{% macro render_field(field, no_complete=False) %}
   <dt>{{ field.label }}</dt>
+  {%- if no_complete %}
+  <dd>{{ field(autocapitalize='off', autocomplete='off', autocorrect='off', spellcheck='off', **kwargs)|safe }}
+  {%- else %}
   <dd>{{ field(**kwargs)|safe }}
+  {%- endif %}
   {% if field.errors %}
     <ul class=errors>
     {% for error in field.errors %}

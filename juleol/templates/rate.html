@@ -7,11 +7,11 @@
 
 <h2 id="rating_header">Rating for beer</h2>
 <dl id="rating">
-    {{ render_field(form.look) }}
-    {{ render_field(form.smell) }}
-    {{ render_field(form.taste) }}
-    {{ render_field(form.aftertaste) }}
-    {{ render_field(form.xmas) }}
+    {{ render_field(form.look, True) }}
+    {{ render_field(form.smell, True) }}
+    {{ render_field(form.taste, True) }}
+    {{ render_field(form.aftertaste, True) }}
+    {{ render_field(form.xmas, True) }}
 </dl>
 <p class="error" style="display: none;"></p>
 <p>
