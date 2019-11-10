@@ -51,7 +51,11 @@
   {% for score in beer_scores.totals %}
   <tr id="beer_{{ score.number }}">
     <td class="row_index">{{ loop.index }}</td>
+    {% if heat %}
+    <td>{{ loop.index }} ({{ score.number }})</td>
+    {% else %}
     <td>{{ score.number }}</td>
+    {% endif %}
     <td onclick="show_details('#score_detail_{{ score.number }}')">{{ score.name }} ⇣</td>
     <td>{{ score.sum }}</td>
     {%- if score.avg %}

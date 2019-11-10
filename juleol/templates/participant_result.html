@@ -36,7 +36,11 @@
     {% for score in scores %}
     <tr>
       <td class="row_index">{{ loop.index }}</td>
+      {% if heat %}
+      <td>{{ loop.index }} ({{ score.number }})</td>
+      {% else %}
       <td>{{ score.number }}</td>
+      {% endif %}
       <td>{{ score.name }}</td>
       <td>{{ score.look }}</td>
       <td>{{ score.smell }}</td>
