@@ -8,11 +8,15 @@ This is a web application written in python flask to aid with the rating of Chri
 
 ## Admin authentication
 
-The admin interface is set up to authenticate against haavard.name with oauth.
-To change to another oauth provider, see the
-[Flask-Dance](https://flask-dance.readthedocs.io/) docs and change 
- * The blueprint setup in ```__init.py__```
- * The login_required function in ```admin.py```
+The admin interface is set up to authenticate against GitHub with oauth.
+To create a new app, go to [https://github.com/settings/applications/new]
+Set the following settings:
+ * Homepage URL, the URL of the juleøl app. For development, use https://localhost:5000
+ * Autherization callback URL, Homepage_URL/admin/login/github/authorize
+
+## Database configuration
+
+See the README in the migrations folder
 
 ## Running the application
 
@@ -24,10 +28,11 @@ image, the following environment variables are supported
    * ```SECRET_KEY```, the flask secret key. Important to be set to a known value
         if running multiple instances. If not set, a random key is generated
         See the flask docs for more information
-   * ```SQLALCHEMY_DATABASE_URI```, the database URI, see flask sqlalchemy for
-     more information about the format
-   * ```HAAVARD_OAUTH_CLIENT_ID``` and ```HAAVARD_OAUTH_CLIENT_SECRET```, the
-     oauth credentials to use againts haavard.name for admin auth
+   * ```SQLALCHEMY_DATABASE_URI```, the database URI, see 
+   [flask sqlalchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/?highlight=sqlalchemy_database_uri)
+   for more information about the format
+   * ```GITHUB_OAUTH_CLIENT_ID``` and ```GITHUB_OAUTH_CLIENT_SECRET```, the
+     oauth credentials to use againts GitHub for admin auth
 
 ## Developing
 
@@ -70,8 +75,8 @@ openssl x509 -signkey server.key -req -in server.csr -out server.crt
 ```
 then add
 ```
-echo 'HAAVARD_OAUTH_CLIENT_ID="XX"' >> $cfgfile
-echo 'HAAVARD_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
+echo 'GITHUB_OAUTH_CLIENT_ID="XX"' >> $cfgfile
+echo 'GITHUB_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
 ```
 And change flask start to
 ```

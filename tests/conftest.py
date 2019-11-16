@@ -46,7 +46,7 @@ def admin_client(monkeypatch):
     
     with app.app_context():
         storage = MemoryStorage({"access_token": "fake-token"})
-        monkeypatch.setattr(app.blueprints['oauth_haavard'], "storage", storage)
+        monkeypatch.setattr(app.blueprints['github'], "storage", storage)
 
         yield client
 
@@ -57,6 +57,6 @@ def admin_noauth_client(monkeypatch):
     
     with app.app_context():
         storage = MemoryStorage()
-        monkeypatch.setattr(app.blueprints['oauth_haavard'], "storage", storage)
+        monkeypatch.setattr(app.blueprints['github'], "storage", storage)
 
         yield client
