@@ -19,4 +19,4 @@ jobs:
         name: ${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}
         tag: ${{ env.DOCKER_TAG }}
         username: umglurf
-        password: ${{ secrets.GITHUB_PACKAGE_REGISTRY_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
