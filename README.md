@@ -1,5 +1,7 @@
 # juleol
 
+![build status badge](https://github.com/umglurf/juleol/workflows/Python application/badge.svg)
+
 Christmas beer rating application
 
 This is a web application written in python flask to aid with the rating of Christmas beer (or other beers for that matter).
