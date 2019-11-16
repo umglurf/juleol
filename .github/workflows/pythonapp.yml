@@ -28,3 +28,8 @@ jobs:
     - name: Test with pytest
       run: |
         python setup.py test
+    - uses: actions/upload-artifact@master
+      name: Upload artifiact
+      with:
+        name: "coverage rapport"
+        path: htmlcov
