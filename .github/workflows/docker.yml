@@ -1,7 +1,8 @@
 name: Docker build and push
 
 env:
-  DOCKER_REPO: docker.pkg.github.com/umglurf/juleol
+  DOCKER_REGISTRY: docker.pkg.github.com
+  DOCKER_REPO: umglurf/juleol
   DOCKER_IMAGE: juleol
   DOCKER_TAG: latest
 
@@ -20,3 +21,4 @@ jobs:
         tag: ${{ env.DOCKER_TAG }}
         username: umglurf
         password: ${{ secrets.GITHUB_TOKEN }}
+        registry: ${{ env.DOCKER_REGISTRY }}
