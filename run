@@ -18,6 +18,17 @@ then
   else
     echo "SQLALCHEMY_DATABASE_URI = \"$SQLALCHEMY_DATABASE_URI\"" >> /etc/juleol.conf
   fi
+  if [ -n "$GITHUB_OAUTH_CLIENT_ID" -a -n "$GITHUB_OAUTH_CLIENT_SECRET" ]
+  then
+    echo "GITHUB_OAUTH_CLIENT_ID=\"$GITHUB_OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
+    echo "GITHUB_OAUTH_CLIENT_SECRET=\"$GITHUB_OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
+  fi
+  if [ -n "$HAAVARD_OAUTH_CLIENT_ID" -a -n "$HAAVARD_OAUTH_CLIENT_SECRET" ]
+  then
+    echo 'OAUTH_PROVIDER="haavard"' >> /etc/juleol.conf
+    echo "HAAVARD_OAUTH_CLIENT_ID=\"$HAAVARD_OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
+    echo "HAAVARD_OAUTH_CLIENT_SECRET=\"$HAAVARD_OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
+  fi
 fi
 
-exec su juleol -c "cd /usr/local/juleol && . bin/activate && gunicorn --bind [::]:3000 wscgi"
+exec su juleol -c "cd /usr/local/juleol && . bin/activate && gunicorn --bind [::]:5000 wscgi"

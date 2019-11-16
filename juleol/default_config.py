@@ -1,4 +1,5 @@
 class DefaultConfig:
+    OAUTH_PROVIDER = 'github'
     PREFERRED_URL_SCHEME = 'https'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_HTTPONLY = True

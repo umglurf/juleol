@@ -2,7 +2,6 @@ from flask import Flask, Blueprint, render_template, request, session, jsonify, 
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
-from juleol.haavard import haavard
 from sqlalchemy import exc
 from wtforms import Form, IntegerField, validators, HiddenField, PasswordField, StringField
 from wtforms.widgets.html5 import NumberInput
@@ -37,8 +36,8 @@ class HeatForm(Form):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not haavard.authorized:
-            return redirect(url_for("oauth_haavard.login"))
+        if not current_app.config.get('oauth').authorized:
+            return redirect(url_for(current_app.config.get('oauth_login')))
         return f(*args, **kwargs)
     return decorated_function
 
