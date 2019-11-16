@@ -4,7 +4,6 @@ env:
   DOCKER_REPO: docker.pkg.github.com/umglurf/juleol
   DOCKER_IMAGE: juleol
   DOCKER_TAG: latest
-  DOCKER_USER: umglurf
 
 on: [push]
 
@@ -14,11 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Build docker image
-      run: docker build -t ${DOCKER_REPO}/${DOCKER_IMAGE}:${DOCKER_TAG} .
-    - name: Push docker image
-      run: |
-        echo "${GITHUB_PACKAGE_REGISTRY_TOKEN}" | docker login docker.pkg.github.com --username umglurf --password-stdin 
-        docker push ${DOCKER_REPO}/${DOCKER_IMAGE}:${DOCKER_TAG}
-      env:
-        GITHUB_PACKAGE_REGISTRY_TOKEN: ${{ secrets.GITHUB_PACKAGE_REGISTRY_TOKEN }}
+    - name: Docker build and push
+      uses: manusa/actions-publish-docker@master
+      with:
+        name: ${{ DOCKER_REPO }}/${{ DOCKER_IMAGE }}
+        tag: ${{ DOCKER_TAG }}
+        username: umglurf
+        password: ${{ secrets.GITHUB_PACKAGE_REGISTRY_TOKEN }}
