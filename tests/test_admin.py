@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 def test_login(admin_noauth_client):
     ret = admin_noauth_client.get('/admin/')
     assert ret.status_code == 302
-    assert ret.headers['Location'] == 'http://localhost/admin/login/oauth_haavard'
+    assert ret.headers['Location'] == 'http://localhost/admin/login/github'
 
 def test_admin_base(admin_client):
     with patch('juleol.db.Tastings') as MockTastings:
