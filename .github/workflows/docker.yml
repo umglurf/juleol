@@ -17,7 +17,7 @@ jobs:
     - name: Docker build and push
       uses: manusa/actions-publish-docker@master
       with:
-        name: ${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}
+        name: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}
         tag: ${{ env.DOCKER_TAG }}
         username: umglurf
         password: ${{ secrets.GITHUB_TOKEN }}
