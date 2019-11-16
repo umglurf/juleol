@@ -6,7 +6,10 @@ env:
   DOCKER_IMAGE: juleol
   DOCKER_TAG: latest
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
