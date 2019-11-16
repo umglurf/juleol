@@ -10,7 +10,7 @@ setup(
         'gunicorn',
         'flask~=1.0',
         'flask-bcrypt',
-        'Flask-Dance~=1.0',
+        'Flask-Dance~=3.0',
         'flask_migrate',
         'flask_sqlalchemy',
         'PyMySQL',
