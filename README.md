@@ -1,6 +1,8 @@
 # juleol
 
-![build status badge](https://github.com/umglurf/juleol/workflows/Python%20unittest/badge.svg)
+![python test status badge](https://github.com/umglurf/juleol/workflows/Python%20unittest/badge.svg)
+
+![build status badge](https://github.com/umglurf/juleol/workflows/Docker%20build%20and%20push/badge.svg)
 
 Christmas beer rating application
 
@@ -9,7 +11,7 @@ This is a web application written in python flask to aid with the rating of Chri
 ## Admin authentication
 
 The admin interface is set up to authenticate against GitHub with oauth.
-To create a new app, go to [https://github.com/settings/applications/new]
+To create a new app, go to (https://github.com/settings/applications/new)
 Set the following settings:
  * Homepage URL, the URL of the juleøl app. For development, use https://localhost:5000
  * Autherization callback URL, Homepage_URL/admin/login/github/authorize
@@ -20,7 +22,8 @@ See the README in the migrations folder
 
 ## Running the application
 
-To run the application, build an image using the Dockerfile. To configure the
+To run the application, build an image using the Dockerfile or use the prebuild image.
+To configure the
 image, the following environment variables are supported
  * ```JULEOL_SETTINGS```, the filename to read settings from. If this is not
    set, the following variables can be set (otherwise must be set in the config
