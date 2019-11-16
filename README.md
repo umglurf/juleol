@@ -1,6 +1,6 @@
 # juleol
 
-![build status badge](https://github.com/umglurf/juleol/workflows/Python application/badge.svg)
+![build status badge](https://github.com/umglurf/juleol/workflows/Python%20application/badge.svg)
 
 Christmas beer rating application
 
