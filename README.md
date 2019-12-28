@@ -16,6 +16,17 @@ Set the following settings:
  * Homepage URL, the URL of the juleøl app. For development, use https://localhost:5000
  * Autherization callback URL, Homepage_URL/admin/login/github/authorize
 
+### Using other oauth2 providers
+
+To use [one of the build in oauth2 providers](https://flask-dance.readthedocs.io/en/latest/providers.html)
+, modify ```__init__.py``` and add it there. There is also a generic oauth2
+provider configured, to use it set the following environment variables
+ * ```OAUTH_PROVIDER=oauth-generic```
+ * ```OAUTH_CLIENT_ID="YOUR_CLIENT_ID"```
+ * ```OAUTH_CLIENT_SECRET="YOUR_CLIENT_SECRET"```
+ * ```OAUTH_AUTHORIZATION_URL="URL TO AUTH ENDPOINT"```
+ * ```OAUTH_TOKEN_URL="URL TO TOKEN ENDPOINT"```
+
 ## Database configuration
 
 See the README in the migrations folder
