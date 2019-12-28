@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_dance.contrib.github import make_github_blueprint, github
-import juleol.haavard
+import juleol.oauth_generic
 import os
 
 def create_app(test_config=None):
@@ -13,15 +13,15 @@ def create_app(test_config=None):
     if test_config:
         app.config.from_object(test_config)
 
-    from juleol import admin, db, view, haavard
+    from juleol import admin, db, view, oauth_generic
     app.register_blueprint(admin.bp)
     app.register_blueprint(view.bp)
     # Change these two lines to use another authentication
     # also modify the login_required function in admin.py
-    if app.config.get('OAUTH_PROVIDER', 'github') == 'haavard':
-        oauth_bp = haavard.make_haavard_blueprint(redirect_to="admin.admin_index")
-        app.config['oauth'] = juleol.haavard.haavard
-        app.config['oauth_login'] = 'oauth_haavard.login'
+    if app.config.get('OAUTH_PROVIDER', 'github') == 'oauth-generic':
+        oauth_bp = oauth_generic.make_oauth_blueprint(redirect_to="admin.admin_index")
+        app.config['oauth'] = juleol.oauth_generic.oauth
+        app.config['oauth_login'] = 'oauth_generic.login'
     elif app.config.get('OAUTH_PROVIDER', 'github') == 'github':
         oauth_bp = make_github_blueprint(redirect_to="admin.admin_index")
         app.config['oauth'] = github
