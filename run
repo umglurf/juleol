@@ -8,8 +8,10 @@ fi
 if [ -z $JULEOL_SETTINGS ]
 then
   export JULEOL_SETTINGS=/etc/juleol.conf
-  if [ -z $SECRET_KEY ]
+  if [ -n "$SECRET_KEY" ]
   then
+    echo "SECRET_KEY=$SECRET_KEY" >> /etc/juleol.conf
+  else
     echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> /etc/juleol.conf
   fi
   if [ -z $SQLALCHEMY_DATABASE_URI ]
