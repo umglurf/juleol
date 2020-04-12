@@ -13,25 +13,32 @@ This is a web application written in python flask to aid with the rating of Chri
 The admin interface is set up to authenticate against GitHub with oauth.
 To create a new app, go to (https://github.com/settings/applications/new)
 Set the following settings:
- * Homepage URL, the URL of the juleøl app. For development, use https://localhost:5000
- * Autherization callback URL, Homepage_URL/admin/login/github/authorize
+ * Homepage URL, the URL of the juleøl app. For development, use ```https://localhost:5000```
+ * Autherization callback URL, ```Homepage_URL/admin/login/github/authorize```
+Then set the environment variables
+ * '''GITHUB_OAUTH_CLIENT_ID```
+ * '''GITHUB_OAUTH_CLIENT_SECRET```
 
-### Using other oauth2 providers
+### Using generic oauth2 provider
 
-To use [one of the build in oauth2 providers](https://flask-dance.readthedocs.io/en/latest/providers.html)
-, modify ```__init__.py``` and add it there. There is also a generic oauth2
-provider configured, to use it set the following environment variables
+To use a generic oauth2 provider, configure the provider using the same parameters as for github.
+Then set  the following environment variables
  * ```OAUTH_PROVIDER=oauth-generic```
  * ```OAUTH_CLIENT_ID="YOUR_CLIENT_ID"```
  * ```OAUTH_CLIENT_SECRET="YOUR_CLIENT_SECRET"```
  * ```OAUTH_AUTHORIZATION_URL="URL TO AUTH ENDPOINT"```
  * ```OAUTH_TOKEN_URL="URL TO TOKEN ENDPOINT"```
 
+### Using other oauth2 providers
+
+To use [one of the build in oauth2 providers](https://flask-dance.readthedocs.io/en/latest/providers.html)
+, modify ```__init__.py``` and add it there. 
+
 ## Database configuration
 
 See the README in the migrations folder
 
-## Running the application
+## Running the application using docker
 
 To run the application, build an image using the Dockerfile or use the prebuild image.
 To configure the
@@ -47,6 +54,7 @@ image, the following environment variables are supported
    for more information about the format
    * ```GITHUB_OAUTH_CLIENT_ID``` and ```GITHUB_OAUTH_CLIENT_SECRET```, the
      oauth credentials to use againts GitHub for admin auth
+   * to use generic oauth2, set the environment variables as described above
 
 ## Developing
 

@@ -23,11 +23,13 @@ then
     echo "GITHUB_OAUTH_CLIENT_ID=\"$GITHUB_OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
     echo "GITHUB_OAUTH_CLIENT_SECRET=\"$GITHUB_OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
   fi
-  if [ -n "$HAAVARD_OAUTH_CLIENT_ID" -a -n "$HAAVARD_OAUTH_CLIENT_SECRET" ]
+  if [ -n "$OAUTH_AUTHORIZATION_URL" -a -n "$OAUTH_TOKEN_URL" -a -n "$OAUTH_CLIENT_ID" -a -n "$OAUTH_CLIENT_SECRET" ]
   then
-    echo 'OAUTH_PROVIDER="haavard"' >> /etc/juleol.conf
-    echo "HAAVARD_OAUTH_CLIENT_ID=\"$HAAVARD_OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
-    echo "HAAVARD_OAUTH_CLIENT_SECRET=\"$HAAVARD_OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
+    echo 'OAUTH_PROVIDER="oauth-generic"' >> /etc/juleol.conf
+    echo "OAUTH_AUTHORIZATION_URL=\"$OAUTH_AUTHORIZATION_URL\"" >> /etc/juleol.conf
+    echo "OAUTH_TOKEN_URL=\"$OAUTH_TOKEN_URL\"" >> /etc/juleol.conf
+    echo "OAUTH_CLIENT_ID=\"$OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
+    echo "OAUTH_CLIENT_SECRET=\"$OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
   fi
 fi
 
