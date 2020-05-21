@@ -24,4 +24,4 @@ jobs:
         username: umglurf
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ${{ env.DOCKER_REGISTRY }}
-        repository: ${{ env.DOCKER_REPO }}
+        repository: ${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}
