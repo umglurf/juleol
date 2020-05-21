@@ -7,31 +7,32 @@ fi
 
 if [ -z $JULEOL_SETTINGS ]
 then
-  export JULEOL_SETTINGS=/etc/juleol.conf
+  config=$(mktemp) || exit 1
+  export JULEOL_SETTINGS="$config"
   if [ -n "$SECRET_KEY" ]
   then
-    echo "SECRET_KEY=\"$SECRET_KEY\"" >> /etc/juleol.conf
+    echo "SECRET_KEY=\"$SECRET_KEY\"" >> "$config"
   else
-    echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> /etc/juleol.conf
+    echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> "$config"
   fi
   if [ -z $SQLALCHEMY_DATABASE_URI ]
   then
-    echo 'SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"' >> /etc/juleol.conf
+    echo 'SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"' >> "$config"
   else
-    echo "SQLALCHEMY_DATABASE_URI = \"$SQLALCHEMY_DATABASE_URI\"" >> /etc/juleol.conf
+    echo "SQLALCHEMY_DATABASE_URI = \"$SQLALCHEMY_DATABASE_URI\"" >> "$config"
   fi
   if [ -n "$GITHUB_OAUTH_CLIENT_ID" -a -n "$GITHUB_OAUTH_CLIENT_SECRET" ]
   then
-    echo "GITHUB_OAUTH_CLIENT_ID=\"$GITHUB_OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
-    echo "GITHUB_OAUTH_CLIENT_SECRET=\"$GITHUB_OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
+    echo "GITHUB_OAUTH_CLIENT_ID=\"$GITHUB_OAUTH_CLIENT_ID\"" >> "$config"
+    echo "GITHUB_OAUTH_CLIENT_SECRET=\"$GITHUB_OAUTH_CLIENT_SECRET\"" >> "$config"
   fi
   if [ -n "$OAUTH_AUTHORIZATION_URL" -a -n "$OAUTH_TOKEN_URL" -a -n "$OAUTH_CLIENT_ID" -a -n "$OAUTH_CLIENT_SECRET" ]
   then
-    echo 'OAUTH_PROVIDER="oauth-generic"' >> /etc/juleol.conf
-    echo "OAUTH_AUTHORIZATION_URL=\"$OAUTH_AUTHORIZATION_URL\"" >> /etc/juleol.conf
-    echo "OAUTH_TOKEN_URL=\"$OAUTH_TOKEN_URL\"" >> /etc/juleol.conf
-    echo "OAUTH_CLIENT_ID=\"$OAUTH_CLIENT_ID\"" >> /etc/juleol.conf
-    echo "OAUTH_CLIENT_SECRET=\"$OAUTH_CLIENT_SECRET\"" >> /etc/juleol.conf
+    echo 'OAUTH_PROVIDER="oauth-generic"' >> "$config"
+    echo "OAUTH_AUTHORIZATION_URL=\"$OAUTH_AUTHORIZATION_URL\"" >> "$config"
+    echo "OAUTH_TOKEN_URL=\"$OAUTH_TOKEN_URL\"" >> "$config"
+    echo "OAUTH_CLIENT_ID=\"$OAUTH_CLIENT_ID\"" >> "$config"
+    echo "OAUTH_CLIENT_SECRET=\"$OAUTH_CLIENT_SECRET\"" >> "$config"
   fi
 fi
 
