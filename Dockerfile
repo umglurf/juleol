@@ -24,5 +24,7 @@ COPY --from=build /usr/local/juleol /usr/local/juleol
 COPY wscgi.py /usr/local/juleol
 COPY run /bin/run
 
+USER juleol
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/bin/run"]
