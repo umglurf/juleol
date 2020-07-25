@@ -68,6 +68,13 @@
 <p><a href="/">Home</a></p>
 
 <script>
+$('#heats').on('hide.bs.collapse', function () {
+  console.log(this);
+  $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+})
+$('#heats').on('show.bs.collapse', function () {
+  $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+})
 function filter_heat() {
   url = new URL(window.location);
   heat = $("#heatselect")[0].value;

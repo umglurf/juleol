@@ -75,6 +75,14 @@
     $(obj).after('<div class="alert alert-danger alert-dismissible fade show" role="alert">' + msg + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>')
   }
 
+  $('#heats').on('hide.bs.collapse', function () {
+    console.log(this);
+    $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+  })
+  $('#heats').on('show.bs.collapse', function () {
+    $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+  })
+
   $("li.page-item").click(function() {
     set_beer(this);
   });
