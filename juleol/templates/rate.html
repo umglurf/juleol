@@ -85,24 +85,17 @@
     next_beer();
   });
 
-  $("input#look").focusout(function() {
-    submit_beer_score("look");
+  $('input').on('focusout', function() {
+    submit_beer_score($(this).prop('id'));
   });
-
-  $("input#smell").focusout(function() {
-    submit_beer_score("smell");
-  });
-
-  $("input#taste").focusout(function() {
-    submit_beer_score("taste");
-  });
-
-  $("input#aftertaste").focusout(function() {
-    submit_beer_score("aftertaste");
-  });
-
-  $("input#xmas").focusout(function() {
-    submit_beer_score("xmas");
+  var inputTimeout = null;
+  $('input').on('keyup', function() {
+    if(inputTimeout !== null) {
+      clearTimeout(inputTimeout);
+    }
+    lookTimeout = setTimeout(function () {
+      submit_beer_score($(this).prop('id'));
+    }, 500);
   });
 
 
@@ -204,10 +197,15 @@
   };
 
   function submit_beer_score(score_type) {
-    var score = $("input#" + score_type)[0].value;
+    var score_obj = $("input#" + score_type);
+    if(score_obj.length == 0) {
+      return;
+    }
+    var score = score_obj[0].value;
     if(!score) {
       return;
     };
+    $(score_obj).siblings('div[role="status"]').show()
     var beer_number = beers[current_beer_pos];
     data = new Map();
     data[score_type] = score;
@@ -216,10 +214,16 @@
       dataType: "json",
       data: data,
       success: function(data, textStatus, xhr) {
+        $(score_obj).siblings('div[role="status"]').hide()
       },
       error: function(xhr, ajaxOptions, thrownError) {
-        var msg = xhr.responseJSON.error;
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating score";
+        }
         add_alert($('h1'), msg);
+        $(score_obj).siblings('div[role="status"]').hide()
       }
     });
   };
@@ -237,6 +241,9 @@
   $(document).ready(function() {
     get_beer_rating(beers[current_beer_pos]);
     update_beer_page_list();
+    $('input').each(function () {
+      $(this).before('<div class="spinner-border spinner-border-sm" role="status" style="display: none;"> <span class="sr-only">Saving...</span> </div>');
+    });
   });
 
   function filter_heat() {
