@@ -67,7 +67,7 @@ def admin_index():
 def admin_year(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
-        flash("Invalid year")
+        flash("Invalid year", 'error')
         return redirect(url_for('admin.admin_index'))
 
     participant_form = ParticipantForm(request.form)
@@ -80,7 +80,7 @@ def admin_year(year):
 def new_participant(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
-        flash("Invalid year")
+        flash("Invalid year", 'error')
         return redirect(url_for('admin.admin_index'))
 
     form = ParticipantForm(request.form)
@@ -105,9 +105,9 @@ def new_participant(year):
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
             current_app.logger.error("Error creating participant: {}".format(e))
-            flash("Error creating participant")
+            flash("Error creating participant", 'error')
     else:
-        flash("Invalid form data")
+        flash("Invalid form data", 'error')
 
     return redirect("/admin/{}".format(year))
 
@@ -116,12 +116,12 @@ def new_participant(year):
 def update_participant(year, participant_id):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
-        flash("Invalid year")
+        flash("Invalid year", 'error')
         return redirect(url_for('admin.admin_index'))
 
     participant = db.Participants.query.filter(db.Participants.tasting == tasting).filter(db.Participants.id == participant_id).first()
     if not participant:
-        flash("Invalid participant")
+        flash("Invalid participant", 'error')
         return redirect("/admin/{}".format(year))
 
     form = ParticipantPasswordForm(request.form)
@@ -131,13 +131,13 @@ def update_participant(year, participant_id):
             participant.password = password
             db.db.session.add(participant)
             db.db.session.commit()
-            flash("Password updated")
+            flash("Password updated", 'error')
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
             current_app.logger.error("Error updating password: {}".format(e))
-            flash("Error updating password")
+            flash("Error updating password", 'error')
     else:
-        flash("Invalid form data")
+        flash("Invalid form data", 'error')
 
     return redirect("/admin/{}".format(year))
 
@@ -146,7 +146,7 @@ def update_participant(year, participant_id):
 def new_heat(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
-        flash("Invalid year")
+        flash("Invalid year", 'error')
         return redirect(url_for('admin.admin_index'))
 
     form = HeatForm(request.form)
@@ -159,9 +159,9 @@ def new_heat(year):
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
             current_app.logger.error("Error creating heat: {}".format(e))
-            flash("Error creating heat")
+            flash("Error creating heat", 'error')
     else:
-        flash("Invalid form data")
+        flash("Invalid form data", 'error')
 
     return redirect("/admin/{}".format(year))
 
@@ -210,7 +210,7 @@ def update_heat(heat_id):
 def new_note(year):
     tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
     if not tasting:
-        flash("Invalid year")
+        flash("Invalid year", 'error')
         return redirect(url_for('admin.admin_index'))
 
     form = NoteForm(request.form)
@@ -223,9 +223,9 @@ def new_note(year):
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
             current_app.logger.error("Error creating note: {}".format(e))
-            flash("Error creating note")
+            flash("Error creating note", 'error')
     else:
-        flash("Invalid form data")
+        flash("Invalid form data", 'error')
 
     return redirect("/admin/{}".format(year))
 

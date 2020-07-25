@@ -7,6 +7,10 @@
 <script>
   const year = {{ tasting.year }};
 
+  function add_alert(obj, msg) {
+    $(obj).after('<div class="alert alert-danger alert-dismissible fade show" role="alert">' + msg + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>')
+  }
+
   function update_beer_name(obj, id) {
     var name = obj.value;
     $.ajax("/admin/beer/" + id, {
@@ -22,8 +26,8 @@
         } catch {
           var msg = "Error updating beer";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg)
+
       }
     });
   };
@@ -55,8 +59,7 @@
         } catch {
           var msg = "Error updating beer";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg);
       }
     });
   };
@@ -76,8 +79,7 @@
         } catch {
           var msg = "Error updating heat";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg);
       }
     });
   };
@@ -97,8 +99,7 @@
         } catch {
           var msg = "Error deleting heat";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg);
       }
     });
   };
@@ -118,8 +119,7 @@
         } catch {
           var msg = "Error updating note";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg);
       }
     });
   };
@@ -139,38 +139,48 @@
         } catch {
           var msg = "Error deleting note";
         }
-        $(obj).siblings("p").text(msg);
-        $(obj).siblings("p").show();
+        add_alert($(obj).parent(), msg);
       }
     });
   };
 </script>
 
-<h1>Juleøl admin tasting year {{ tasting.year }}</h1>
+<nav aria-label="breadcrumb bg-secondary">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="/admin/">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ tasting.year }}</li>
+  </ol>
+</nav>
 
-<h2>Beers</h2>
-<dl>
+<h1 class="m-2 text-primary">Juleøl admin tasting year {{ tasting.year }}</h1>
+
+<h2 class="m-2 text-light">Beers</h2>
+<ul class="list-group m-2">
   {% for beer in tasting.beers %}
-  <dt>Beer {{ beer.number }}</dt>
-  <dd><input type="text" value="{{ beer.name }}" onfocusout="update_beer_name(this, {{ beer.id }});"/>
-  <select onchange="update_beer_heat(this, {{ beer.id }});">
-    <option value="None" {% if not beer.heat %}selected="selected"{% endif %}>None</option>
-    {% for heat in tasting.heats %}
-    <option value="{{ heat.id }}"{% if beer.heat.id == heat.id %}selected="selected"{% endif %}>{{ heat.name }}</option>
-    {% endfor %}
-  </select>
-  <p class="error" style="display: none;"/>
-  </dd>
+  <li class="list-group-item list-group-item-secondary">
+    <h4 class="text-primary">Beer {{ beer.number }}</h4>
+    <div class="input-group m-3">
+      <label class="mr-2" for="beer_{{ beer.id }}">Name</label>
+      <input type="text" id="beer_{{ beer.id }}" value="{{ beer.name }}" onfocusout="update_beer_name(this, {{ beer.id }});"/>
+      <label class="mr-2 ml-2" for="heat_beer_{{ beer.id }}">Heat</label>
+      <select class="custom-select" id="heat_beer_{{ beer.id }}" onchange="update_beer_heat(this, {{ beer.id }});">
+        <option value="None" {% if not beer.heat %}selected="selected"{% endif %}>None</option>
+        {% for heat in tasting.heats %}
+        <option value="{{ heat.id }}"{% if beer.heat.id == heat.id %}selected="selected"{% endif %}>{{ heat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </li>
   {% endfor %}
-</dl>
+</ul>
 
-<h2>Heats</h2>
-<ul>
+<h2 class="m-2 text-light">Heats</h2>
+<ul class="list-group m-2">
   {% for heat in tasting.heats %}
-  <li>
+  <li class="list-group-item list-group-item-secondary">
   <input type="text" value="{{ heat.name }}" onfocusout="update_heat(this, {{ heat.id }});"/>
   <input type="button" value="Delete" onclick="delete_heat(this, {{ heat.id }});"/>
-  <p class="error" style="display: none;"/>
   </li>
   {% endfor %}
 </ul>
@@ -178,47 +188,50 @@
   <dl>
     {{ render_field(heat_form.name) }}
   </dl>
-  <p><input type=submit value="Add heat"></p>
+  <div class="input-group input-group-sm m-3">
+    <button class="btn btn-primary" type=submit value="Add heat">Add heat</button>
+  </div>
 </form>
 
-<h2>Notes</h2>
-<ul>
+<h2 class="m-2 text-light">Notes</h2>
+<ul class="list-group m-2">
   {% for note in tasting.notes %}
-  <li>
+  <li class="list-group-item list-group-item-secondary">
   <input type="text" value="{{ note.note }}" onfocusout="update_note(this, {{ note.id }});"/>
-  <input type="button" value="Delete" onclick="delete_note(this, {{ note.id }});"/>
-  <p class="error" style="display: none;"/>
+  <button type="button" class="btn btn-primary" onclick="delete_note(this, {{ note.id }});">Delete</button>
   </li>
   {% endfor %}
 </ul>
 <form action="/admin/{{ tasting.year }}/note" method="post">
-  <dl>
-    {{ render_field(note_form.note) }}
-  </dl>
-  <p><input type=submit value="Add note"></p>
+  {{ render_field(note_form.note, placeholder="new note") }}
+  <div class="input-group input-group-sm m-3">
+    <button class="btn btn-primary" type=submit value="Add note">Add note</button>
+  </div>
 </form>
 
-<h2>Participants</h2>
-<dl>
+<h2 class="m-2 text-light">Participants</h2>
+<ul class="list-group m-2">
   {% for participant in tasting.participants %}
-  <form action="/admin/{{ tasting.year }}/participant/{{ participant.id }}" method="post">
-  <dt>{{ participant.name }}</dt>
-  <dd><input type="password" name="password"/><input type="submit" value="Change password"/>
-  </dd>
-  </form>
+  <li class="list-group-item list-group-item-secondary">
+    <form action="/admin/{{ tasting.year }}/participant/{{ participant.id }}" method="post">
+      <h4 class="text-primary">{{ participant.name }}</h4>
+      <div class="input-group m-3">
+        <label class="mr-2" for="participant_{{ participant.id }}">Participant name</label>
+        <input id="participant_{{ participant.id }}" type="password" name="password"/>
+        <button class="btn btn-primary" type=submit value="Change password">Change password</button>
+      </div>
+    </form>
+  </li>
   {% endfor %}
-</dl>
+</ul>
 
-<h2>New participant</h2>
+<h2 class="m-2 text-light">New participant</h2>
 <form action="/admin/{{ tasting.year }}/participant" method="post">
-  <dl>
-    {{ render_field(participant_form.name) }}
-    {{ render_field(participant_form.password) }}
-  </dl>
-  <p><input type=submit value="Create"></p>
+  {{ render_field(participant_form.name) }}
+  {{ render_field(participant_form.password) }}
+  <div class="input-group input-group-sm m-3">
+    <button class="btn btn-primary" type=submit value="Create">Create</button>
+  </div>
 </form>
-
-<p><a href="/admin/">Admin Home</a></p>
-<p><a href="/">Home</a></p>
 
 {% endblock %}

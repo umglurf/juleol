@@ -3,45 +3,57 @@
 {% block title %}Juleølsmaking result {{ tasting.year }}{% endblock %}
 
 {%block content %}
-<h1>Juleølsmaking {{ tasting.year }}</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Results {{ tasting.year }}</li>
+  </ol>
+</nav>
+<h1 class="m-2 text-primary">Juleølsmaking {{ tasting.year }}</h1>
 
-<h2>Participants</h2>
-<ul>
+<h2 data-toggle="collapse" href="#participants" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Participants
+</h2>
+<div class="collapse m-2" id="participants">
+<ul class="list-group">
   {% for participant in participants %}
-  <li><a href="{{ "/result/{}/{}".format(participant.tasting.year, participant.id) }}">{{ participant.name }}</a></li>
+  <li class="list-group-item list-group-item-secondary"><a class="text-primary" href="{{ "/result/{}/{}".format(participant.tasting.year, participant.id) }}">{{ participant.name }}</a></li>
   {% endfor %}
 </ul>
+</div>
 
 {% if tasting.notes | length > 0 %}
-<h2>Notes</h2>
-<ul>
+<h2 data-toggle="collapse" href="#notes" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Notes</h2>
+<div class="collapse m-2" id="notes">
+<ul class="list-group">
   {% for note in tasting.notes %}
-  <li>{{ note.note }}</li>
+  <li class="list-group-item list-group-item-secondary text-primary">{{ note.note }}</li>
   {% endfor %}
 </ul>
+</div>
 {% endif %}
 
-<h2>Result</h2>
 {% if tasting.heats %}
-<p>
-<label for="heat">Heat</label>
-<select id="heatselect" name="heat" onchange="filter_heat();">
+<h2 data-toggle="collapse" href="#heats" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Heats</h2>
+<div class="collapse m-2" id="heats">
+<select class="custom-select" id="heatselect" name="heat" onchange="filter_heat();">
   <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
   {% for h in tasting.heats %}
   <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
   {% endfor %}
 </select>
-</p>
+</div>
 {% endif %}
-<table id="resulttable" class="tablesorter">
+
+<h2 class="m-2 text-light">Result</h2>
+<table class="tablesorter table table-striped table-secondary m-2 responsive-table text-primary" id="resulttable">
   <thead>
   <tr>
-    <th style="width: 7em">Number</th>
-    <th style="width: 7em">Beer number</th>
+    <th/>
     <th>Beer</th>
-    <th style="width: 7em">Sum</th>
-    <th style="width: 7em">Average</th>
-    <th style="width: 7em">Standard deviation</th>
+    <th>Beer number</th>
+    <th>Sum</th>
+    <th>Average</th>
+    <th>Standard deviation</th>
     {%- if tasting.heats %}
     <th>Heat</th>
     {%- endif %}
@@ -50,65 +62,94 @@
   <tbody>
   {% for score in beer_scores.totals %}
   <tr id="beer_{{ score.number }}">
-    <td class="row_index">{{ loop.index }}</td>
+    <td>{{ loop.index }}</td>
+    <td class="title"><span>{{ score.name }}</span>&nbsp;
+      <button type="button" class="btn" data-toggle="modal" data-target="#score_detail_{{ score.number }}">
+        <img alt="more information icon" src="/static/icons/info.svg"/>
+      </button>
+    </td>
     {% if heat %}
-    <td>{{ loop.index }} ({{ score.number }})</td>
+    <td data-title="Beer number">{{ loop.index }} ({{ score.number }})</td>
     {% else %}
-    <td>{{ score.number }}</td>
+    <td data-title="Beer number">{{ score.number }}</td>
     {% endif %}
-    <td onclick="show_details('#score_detail_{{ score.number }}')">{{ score.name }} ⇣</td>
-    <td>{{ score.sum }}</td>
+    <td data-title="Sum">{{ score.sum }}</td>
     {%- if score.avg %}
-    <td>{{ "{:.2f}".format(score.avg) }}</td>
+    <td data-title="Average">{{ "{:.2f}".format(score.avg) }}</td>
     {%- else %}
     <td/>
     {%- endif %}
     {%- if score.std %}
-    <td>{{ "{:.2f}".format(score.std) }}</td>
+    <td data-title="Standard deviation">{{ "{:.2f}".format(score.std) }}</td>
     {%- else %}
     <td/>
     {%- endif %}
     {%- if tasting.heats %}
-    <td>{{ score.heat_name }}</td>
+    <td data-title="Heat">{{ score.heat_name }}</td>
     {%- endif %}
-  </tr>
-  <tr class="score_detail" id="score_detail_{{ score.number }}">
-    <td/>
-    <td/>
-    <td>
-        <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Sum</th>
-            <th>Deviation from average</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for participant in beer_scores.details[score.number] %}
-          <tr>
-            <td>{{ participant.name }}</td>
-            <td>{{ participant.sum }}</td>
-            {%- if participant.sum %}
-            <td>{{ "{:.2f}".format(score.avg - participant.sum) }}</td>
-            {%- else %}
-            <td/>
-            {%- endif %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </td>
-    <td colspan="3"/>
   </tr>
   {% endfor %}
   </tbody>
 </table>
-
-<p><a href="/">Home</a></p>
-
+{% for score in beer_scores.totals %}
+<div class="modal" role="dialog" aria-labelledby="score_detail_label_{{ score.number }}" aria-hidden="true" id="score_detail_{{ score.number }}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title text-light" id="score_detail_label_{{ score.number }}">Details for {{ score.name }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-secondary text-primary">
+          <thead>
+            <tr>
+              <th style="width: 8em">Name</th>
+              <th style="width: 3em">Sum</th>
+              <th style="width: 5em">Deviation from average</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for participant in beer_scores.details[score.number] %}
+            <tr>
+              <td>{{ participant.name }}</td>
+              <td>{{ participant.sum }}</td>
+              {%- if participant.sum %}
+              <td class="deviation">{{ "{:.2f}".format(score.avg - participant.sum) }}</td>
+              {%- else %}
+              <td/>
+              {%- endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 
 <script>
+$('#heats').on('hide.bs.collapse', function () {
+  $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+})
+$('#heats').on('show.bs.collapse', function () {
+  $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+})
+$('#notes').on('hide.bs.collapse', function () {
+  $('h2[href="#notes"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+})
+$('#notes').on('show.bs.collapse', function () {
+  $('h2[href="#notes"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+})
+$('#participants').on('hide.bs.collapse', function () {
+  $('h2[href="#participants"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+})
+$('#participants').on('show.bs.collapse', function () {
+  $('h2[href="#participants"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+})
+
 function show_details(id) {
   $(id).toggle();
 };
@@ -126,6 +167,7 @@ function filter_heat() {
 
 $(document).ready(function() {
   $('#resulttable').tablesorter({
+    theme: 'bootstrap'
   });
   $('#resulttable').bind("sortEnd", function() {
     $("tr.score_detail").each(function() {
@@ -143,4 +185,3 @@ $(document).ready(function() {
 })
 </script>
 {% endblock %}
-

@@ -3,30 +3,39 @@
 {% block title %}Juleølsmaking result {{ participant.tasting.year }} for {{ participant.name }}{% endblock %}
 
 {%block content %}
-<h1>Juleølsmaking result {{ participant.tasting.year }} for {{ participant.name }}</h1>
+<nav aria-label="breadcrumb bg-light">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="/result/{{ participant.tasting.year }}">Results {{ participant.tasting.year }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ participant.name }}</li>
+  </ol>
+</nav>
+<h1 class="m-2 text-primary">Juleølsmaking result {{ participant.tasting.year }} for {{ participant.name }}</h1>
+
 {% if participant.tasting.heats %}
-<p>
-<label for="heat">Heat</label>
-<select id="heatselect" name="heat" onchange="filter_heat();">
+<h2 data-toggle="collapse" href="#heats" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Heats</h2>
+<div class="collapse m-2" id="heats">
+<select class="custom-select bg-primary text-light" id="heatselect" name="heat" onchange="filter_heat();">
   <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
   {% for h in participant.tasting.heats %}
   <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
   {% endfor %}
 </select>
-</p>
+</div>
 {% endif %}
-<table id="resulttable">
+<h2 class="m-2 text-light">Result</h2>
+<table class="tablesorter table table-striped table-secondary m-2 responsive-table text-primary" id="resulttable">
   <thead>
     <tr>
-      <th style="width: 7em;">Number</th>
-      <th style="width: 7em;">Beer number</th>
+      <th>Number</th>
       <th>Beer</th>
-      <th style="width: 5em;">Look</th>
-      <th style="width: 5em;">Smell</th>
-      <th style="width: 5em;">Taste</th>
-      <th style="width: 5em;">Aftertaste</th>
-      <th style="width: 5em;">Xmas</th>
-      <th style="width: 5em;">Sum</th>
+      <th>Beer number</th>
+      <th>Look</th>
+      <th>Smell</th>
+      <th>Taste</th>
+      <th>Aftertaste</th>
+      <th>Xmas</th>
+      <th>Sum</th>
       {%- if participant.tasting.heats %}
       <th>Heat</th>
       {%- endif %}
@@ -35,21 +44,21 @@
   <tbody>
     {% for score in scores %}
     <tr>
-      <td class="row_index">{{ loop.index }}</td>
+      <td>{{ loop.index }}</td>
+      <td class="title"><span>{{ score.name }}</span></td>
       {% if heat %}
       <td>{{ loop.index }} ({{ score.number }})</td>
       {% else %}
-      <td>{{ score.number }}</td>
+      <td data-title="Beer number">{{ score.number }}</td>
       {% endif %}
-      <td>{{ score.name }}</td>
-      <td>{{ score.look }}</td>
-      <td>{{ score.smell }}</td>
-      <td>{{ score.taste }}</td>
-      <td>{{ score.aftertaste }}</td>
-      <td>{{ score.xmas }}</td>
-      <td>{{ (score.look or 0) + (score.smell or 0) + (score.taste or 0) + (score.aftertaste or 0) + (score.xmas or 0) }}</td>
+      <td data-title="Look">{{ score.look }}</td>
+      <td data-title="Smell">{{ score.smell }}</td>
+      <td data-title="Taste">{{ score.taste }}</td>
+      <td data-title="Aftertaste">{{ score.aftertaste }}</td>
+      <td data-title="Xmas">{{ score.xmas }}</td>
+      <td data-title="Sum">{{ (score.look or 0) + (score.smell or 0) + (score.taste or 0) + (score.aftertaste or 0) + (score.xmas or 0) }}</td>
       {%- if participant.tasting.heats %}
-      <td>{{ score.heat_name }}</td>
+      <td data-title="Heat">{{ score.heat_name }}</td>
       {%- endif %}
     </tr>
     {% endfor %}
@@ -72,6 +81,7 @@ function filter_heat() {
 
 $(document).ready(function() {
   $('#resulttable').tablesorter({
+    theme: 'bootstrap'
   });
   $('#resulttable').bind("sortEnd", function() {
     var i = 1;

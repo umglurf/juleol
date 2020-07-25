@@ -1,16 +1,15 @@
 {% macro render_field(field, no_complete=False) %}
-  <dt>{{ field.label }}</dt>
+  <div class="form-group m-3 text-light bg-primary">
+  {{ field.label }}
   {%- if no_complete %}
-  <dd>{{ field(autocapitalize='off', autocomplete='off', autocorrect='off', spellcheck='off', **kwargs)|safe }}
+  {{ field(autocapitalize='off', autocomplete='off', autocorrect='off', spellcheck='off', class="form-control", **kwargs)|safe }}
   {%- else %}
-  <dd>{{ field(**kwargs)|safe }}
+  {{ field(class="form-control", **kwargs)|safe }}
   {%- endif %}
   {% if field.errors %}
-    <ul class=errors>
     {% for error in field.errors %}
-      <li>{{ error }}</li>
+      <small class="form-text text-danger">{{ error }}</small>
     {% endfor %}
-    </ul>
   {% endif %}
-  </dd>
+  </div>
 {% endmacro %}
