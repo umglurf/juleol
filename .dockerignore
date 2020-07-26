@@ -1,6 +1,4 @@
 Dockerfile
-tests/
-migrations/
 .git/
 **/__pycache__
 **/.eggs
