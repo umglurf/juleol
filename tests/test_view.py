@@ -98,9 +98,9 @@ def test_result(client):
         assert ret.status_code == 200
         assert b'<tr id="beer_1">' in ret.data
         assert b'<td>1</td>' in ret.data
-        assert b'<td>10</td>' in ret.data
-        assert b'<td>42.00</td>' in ret.data
-        assert b'<td>13.00</td>' in ret.data
+        assert b'<td data-title="Sum">10</td>' in ret.data
+        assert b'<td data-title="Average">42.00</td>' in ret.data
+        assert b'<td data-title="Standard deviation">13.00</td>' in ret.data
         assert b'<tr id="beer_2">' in ret.data
 
         ret = client.get('/result/2000?heat=1', headers={'Content-Type': 'application/json'})
@@ -143,13 +143,13 @@ def test_result_participant(client):
         ]):
         ret = client.get('/result/2000/1')
         assert ret.status_code == 200
-        assert b'<td>test 1</td>' in ret.data
-        assert b'<td>test 2</td>' in ret.data
+        assert b'<td class="title"><span>test 1</span></td>' in ret.data
+        assert b'<td class="title"><span>test 2</span></td>' in ret.data
 
         ret = client.get('/result/2000/1?heat=1')
         assert ret.status_code == 200
-        assert not b'<td>test 1</td>' in ret.data
-        assert b'<td>test 2</td>' in ret.data
+        assert not b'<td class="title"><span>test 1</span></td>' in ret.data
+        assert b'<td class="title"><span>test 2</span></td>' in ret.data
 
 def test_result_invalid_participant(client):
     db.Participants.query.join.return_value.filter.return_value.filter.return_value.one.return_value = None

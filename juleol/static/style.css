@@ -1,87 +1,105 @@
 body {
-margin: 0.5em;
-padding: 0px;
-background-color: #ddd;
-
-color: #333;
+  background-image: url("/static/2031353-f44336.svg");
+  background-blend-mode: luminosity;
 }
 
-dl dt {
-  float: left;
-  margin-right:10px; 
-  padding:5px;  
-  width: 8em;
+h2 img {
+  filter: invert(100%) sepia(8%) saturate(2136%) hue-rotate(327deg) brightness(112%) contrast(107%);
 }
 
-dl dd {
-  margin:2px 0; 
-  padding:5px 0;
-}
+/*  Custom stacked styles for mobile sizes */
+/*  Use a max-width media query so we don't have to undo these styles */
+@media (max-width: 60em) {
+  /* Force table to not be like tables anymore */
+		table.responsive-table,
+    .responsive-table thead,
+    .responsive-table tbody,
+    .responsive-table thead tr,
+    .responsive-table thead tr th,
+    .responsive-table tbody tr,
+    .responsive-table tbody tr td {
+			display: block;
+		}
 
-ol.ratinglist li ul {
-  list-style: none;
-}
-ol.ratinglist>li {
-  border: 1px solid;
-  margin: 1px;
-  width: 20em;
-}
-li {
-  padding: 2px;
-}
-ol.ratinglist li ul li label {
-  float: left;
-  width: 8em;
-}
-ol.ratinglist li ul li input[type="number"] {
-  width: 2em;
-  border: 1px solid #999;
-}
-
-.error {
-  color: red;
-}
-
-li.error {
-  list-style: none;
-}
+		/* Hide table headers (but not display: none;, for accessibility) */
+    /*
+		.responsive-table thead tr {
+			position: absolute;
+			top: -9999px;
+			left: -9999px;
+		}*/
 
 
-li.message {
-  list-style: none;
-}
+    .responsive-table thead tr,
+    .responsive-table tbody tr {
+      margin: 0 0 1rem 0;
+    }
 
-table {
-  border: 1px solid;
-  margin: 1em;
-}
+		.responsive-table thead tr th {
+			border: 1px solid #eee;
+      font-size: 0.8em;
+			position: relative;
+			width: 50%;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      margin-left: 25%;
+      margin-right: 25%;
+    }
 
-td {
-  border: 2px inset;
-  padding: 0.3em;
-}
+		.responsive-table tbody tr td {
+			/* Behave  like a "row" */
+			border: none;
+			border-bottom: 1px solid #eee;
+			position: relative;
+			padding-left: 50%;
+		}
 
-tr.score_detail {
-  display: none;
-}
+		.responsive-table tbody tr td:before {
+			/* Now like a table header */
+			position: absolute;
+			/* Top/left values mimic padding */
+			top: 0;
+			left: 6px;
+			width: 45%;
+			padding-right: 10px;
+			white-space: nowrap;
+		}
 
-table.tablesorter thead tr th, table.tablesorter tfoot tr th {
-	border: 2px inset #FFF;
-	padding: 4px;
-}
-table.tablesorter thead tr .tablesorter-header {
-	background-image: url(/static/bg.gif);
-	background-repeat: no-repeat;
-	background-position: center right;
-	cursor: pointer;
-}
+    .responsive-table tbody tr {
+        display: block;
+        line-height: 110%;
+        padding: .5em .5em .5em .5em;
+        margin: .5em .5em .5em .5em;
+        -moz-box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        -webkit-box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        box-shadow: 0 1px 6px rgba(0,0,0,.1);
+    }
 
-table.tablesorter thead tr .tablesorter-headerAsc {
-	background-image: url(/static/asc.gif);
-}
-table.tablesorter thead tr .tablesorter-headerDesc {
-	background-image: url(/static/desc.gif);
-}
-table.tablesorter thead tr .tablesorter-headerAsc, table.tablesorter thead tr .tablesorter-headerDesc {
-background-color: #ccc;
+    /*  White bg, large blue text for title */
+    .responsive-table tbody tr td.title {
+        display: block;
+        font-size: 1.3em;
+        line-height: 110%;
+        padding: .5em .5em;
+        margin: .2em .2em .2em .2em;
+        -moz-box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        -webkit-box-shadow: 0 1px 6px rgba(0,0,0,.1);
+        box-shadow: 0 1px 6px rgba(0,0,0,.1);
+    }
+
+    .responsive-table thead {
+      counter-reset: number;
+    }
+    .responsive-table tbody tr td.title span:before {
+      counter-increment: number;
+      content: counter(number) " ";
+    }
+
+		/*
+		Label the data
+		*/
+		.responsive-table thead tr th:nth-of-type(1) { display: none; }
+		.responsive-table tbody tr td:nth-of-type(1) { display: none; }
+    .responsive-table tbody tr td[data-title]:before { content: attr(data-title); }
+
 }

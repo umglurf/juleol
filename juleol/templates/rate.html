@@ -3,49 +3,75 @@
 
 {% block title %}Juleøl rate beer year {{ g.participant.tasting.year }}{% endblock %}
 {%block content %}
-<h1>Juleøl rate beer year {{ g.participant.tasting.year }}</h1>
-
-<h2 id="rating_header">Rating for beer</h2>
-<dl id="rating">
-    {{ render_field(form.look, True) }}
-    {{ render_field(form.smell, True) }}
-    {{ render_field(form.taste, True) }}
-    {{ render_field(form.aftertaste, True) }}
-    {{ render_field(form.xmas, True) }}
-</dl>
-<p class="error" style="display: none;"></p>
-<p>
-<a href="#" id="prev">Previous</a>
-<select id="select_beer">
-{% if heat %}
-{% set beers = g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) %}
-{% else %}
-{% set beers = g.participant.tasting.beers %}
-{% endif %}
-{% for beer in beers %}
-{% if heat %}
-<option value="{{ beer.number }}">{{ loop.index }} ({{ beer.number }})</option>
-{% else %}
-<option value="{{ beer.number }}">{{ beer.number }}</option>
-{% endif %}
-{% endfor %}
-</select>
-<a href="#" id="next">Next</a>
-</p>
+<nav class="navbar navbar-expand-{%- if 'user_id' in session %}sm{%- else %}md{%- endif %} navbar-light bg-light">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ol class="m-2 breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Rate {{ g.participant.tasting.year }}</li>
+    </ol>
+    <a class="nav-item" href="/result/{{ g.participant.tasting.year }}">Results</a>
+  </div>
+</nav>
+<h1 class="m-2 text-primary">Juleøl rate beer year {{ g.participant.tasting.year }}</h1>
 
 {% if g.participant.tasting.heats %}
-<p>
-<label for="heat">Heat</label>
-<select id="heatselect" name="heat" onchange="filter_heat();">
+<h2 data-toggle="collapse" href="#heats" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Heats</h2>
+<div class="collapse m-2" id="heats">
+<select class="custom-select" id="heatselect" name="heat" onchange="filter_heat();">
   <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
   {% for h in g.participant.tasting.heats %}
   <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
   {% endfor %}
 </select>
-</p>
+</div>
 {% endif %}
-<p><a href="/result/{{ g.participant.tasting.year }}">Result</a></p>
-<p><a href="/">Home</a></p>
+
+
+<h2 class="m-2 text-light" id="rating_header">Rating for beer</h2>
+<form oninput="result.value=look.value">
+{{ render_field(form.look, True, type="range", step="1") }}
+</form>
+
+<form oninput="result.value=smell.value">
+{{ render_field(form.smell, True, type="range") }}
+</form>
+
+<form oninput="result.value=taste.value">
+{{ render_field(form.taste, True, type="range") }}
+</form>
+
+<form oninput="result.value=aftertaste.value">
+{{ render_field(form.aftertaste, True, type="range") }}
+</form>
+
+<form oninput="result.value=xmas.value">
+{{ render_field(form.xmas, True, type="range") }}
+</form>
+
+{% if heat %}
+{% set beers = g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) %}
+{% else %}
+{% set beers = g.participant.tasting.beers %}
+{% endif %}
+<nav aria-label="Beer number">
+  <ul class="pagination m-2">
+    <li class="page-item"><a class="page-link" href="#" id="prev">Previous</a></li>
+    {% for beer in beers %}
+    <li class="page-item" data-beer="{{ beer.number }}">
+    {% if heat %}
+      <a class="page-link" href="#">{{ loop.index }} ({{ beer.number }} )</a></li>
+    {% else %}
+    <a class="page-link" href="#" id="page{{ loop.index }}">{{ beer.number }}</a>
+    {% endif %}
+    </li>
+    {% endfor %}
+    <li class="page-item"><a class="page-link" href="#" id="next">Next</a></li>
+  </ul>
+</nav>
+
 
 <script>
   const year = {{ g.participant.tasting.year }};
@@ -59,8 +85,20 @@
   var current_beer_pos = 0;
   const score_types = ["look", "smell", "taste", "aftertaste", "xmas"];
 
-  $("#select_beer").change(function() {
-    set_beer();
+  function add_alert(obj, msg) {
+    $(obj).after('<div class="alert alert-danger alert-dismissible fade show" role="alert">' + msg + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>')
+  }
+
+  $('#heats').on('hide.bs.collapse', function () {
+    console.log(this);
+    $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
+  })
+  $('#heats').on('show.bs.collapse', function () {
+    $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-up-circle.svg"
+  })
+
+  $("li.page-item").click(function() {
+    set_beer(this);
   });
   $("#prev").click(function() {
     prev_beer();
@@ -69,26 +107,9 @@
     next_beer();
   });
 
-  $("input#look").focusout(function() {
-    submit_beer_score("look");
+  $('input').on('change', function() {
+    submit_beer_score($(this).prop('id'));
   });
-
-  $("input#smell").focusout(function() {
-    submit_beer_score("smell");
-  });
-
-  $("input#taste").focusout(function() {
-    submit_beer_score("taste");
-  });
-  
-  $("input#aftertaste").focusout(function() {
-    submit_beer_score("aftertaste");
-  });
-  
-  $("input#xmas").focusout(function() {
-    submit_beer_score("xmas");
-  });
-  
 
   function prev_beer() {
     if(current_beer_pos == 0) {
@@ -96,8 +117,8 @@
     } else {
       current_beer_pos = current_beer_pos - 1;
     };
-    $("#select_beer")[0].value = beers[current_beer_pos];
     get_beer_rating(beers[current_beer_pos]);
+    update_beer_page_list();
   };
 
   function next_beer() {
@@ -106,15 +127,53 @@
     } else {
       current_beer_pos = current_beer_pos + 1;
     };
-    $("#select_beer")[0].value = beers[current_beer_pos];
     get_beer_rating(beers[current_beer_pos]);
+    update_beer_page_list();
   };
-  
-  function set_beer() {
-    num = $("#select_beer")[0].value - 1;
-    if(num >= 0 && num < beers.length) {
-      current_beer_pos = num;
-      get_beer_rating(beers[current_beer_pos]);
+
+  function update_beer_page_list() {
+    $("li.page-item").each(function(index) {
+      if($(this).data('beer') !== undefined) {
+        var prev_beer;
+        var current_beer;
+        var next_beer;
+        if(current_beer_pos == 0) {
+          prev_beer = beers[beers.length - 1];
+        } else {
+          prev_beer = beers[current_beer_pos - 1];
+        }
+        if(current_beer_pos == beers.length - 1) {
+          next_beer = beers[0];
+        } else {
+          next_beer = beers[current_beer_pos + 1];
+        }
+        current_beer = beers[current_beer_pos];
+        var beer = $(this).data('beer');
+        if(beer == prev_beer || beer == current_beer || beer == next_beer) {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+        if(beer == current_beer) {
+          $(this).addClass('active');
+        } else {
+          $(this).removeClass('active');
+        }
+      }
+    });
+  }
+
+  function set_beer(obj) {
+    if($(obj).data('beer') !== undefined) {
+      var beer = $(obj).data('beer');
+      var num = beers.findIndex(function(e) {
+        return Number(e) == this;
+      }, beer);
+      if(num >= 0 && num < beers.length) {
+        current_beer_pos = num;
+        get_beer_rating(beers[current_beer_pos]);
+        update_beer_page_list();
+      }
     }
   };
 
@@ -136,21 +195,34 @@
           } else {
             $("input#" + key)[0].value = "";
           };
+          $("input#" + key).trigger('input');
         };
       },
       error: function(xhr, ajaxOptions, thrownError) {
-        var msg = xhr.responseJSON.error;
-        $("p.error").text(msg);
-        $("p.error").show();
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error getting beer rating data"
+        }
+        add_alert($('h1'), msg);
       }
     });
   };
 
   function submit_beer_score(score_type) {
-    var score = $("input#" + score_type)[0].value;
+    var score_obj = $("input#" + score_type);
+    if(score_obj.length == 0) {
+      return;
+    }
+    var score = score_obj[0].value;
     if(!score) {
       return;
     };
+    if(score_obj[0].checkValidity() === false) {
+      $(score_obj).addClass('is-invalid');
+      return;
+    }
+    $(score_obj).removeClass('is-invalid');
     var beer_number = beers[current_beer_pos];
     data = new Map();
     data[score_type] = score;
@@ -159,17 +231,19 @@
       dataType: "json",
       data: data,
       success: function(data, textStatus, xhr) {
-        $("p.error").hide();
       },
       error: function(xhr, ajaxOptions, thrownError) {
-        var msg = xhr.responseJSON.error;
-        $("p.error").text(msg);
-        $("p.error").show();
+        try {
+          var msg = xhr.responseJSON.error;
+          add_alert($('h1'), msg);
+        } catch {
+          add_alert($('h1'), "Error updating score");
+        }
       }
     });
   };
-  
-  $("#rating").touchwipe({
+
+  $("body").touchwipe({
     wipeLeft: function() { next_beer();},
     wipeRight: function() { prev_beer(); },
     //wipeUp: function() { },
@@ -180,7 +254,12 @@
   });
 
   $(document).ready(function() {
-    get_beer_rating($("#select_beer")[0].options[0].value);
+    get_beer_rating(beers[current_beer_pos]);
+    update_beer_page_list();
+    $('input').each(function() {
+      var name = $(this).prop('name');
+      $(this).after('<div class="invalid-feedback alert alert-danger" role="alert">The input is not valid</div>')
+    });
   });
 
   function filter_heat() {

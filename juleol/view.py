@@ -36,8 +36,10 @@ def login_required(f):
 
 @bp.route('/', methods=["GET"])
 def index():
+    form = LoginForm(request.form)
+    form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
     tastings = db.Tastings.query.all()
-    return render_template('index.html', tastings=tastings)
+    return render_template('index.html', tastings=tastings, form=form)
 
 @bp.route('/login', methods=["GET", "POST"])
 def login():
@@ -161,7 +163,8 @@ def rate_beer(year, beer_number):
 
     form = RatingForm(request.form)
     if not form.validate():
-        response = jsonify(error = str(form.errors))
+        error_msg = ["{}: {}".format(k, ", ".join(v)) for k, v in form.errors.items()]
+        response = jsonify(error = error_msg)
         response.status_code = 400
         return response
 
@@ -190,8 +193,8 @@ def rate_beer(year, beer_number):
     except exc.SQLAlchemyError as e:
         db.db.session.rollback()
         current_app.logger.error("Error updating scores: {}".format(e))
-        response = jsonify(error = "Error updating scores")
+        response = jsonify(error="Error updating scores")
         response.status_code = 500
         return response
-    
+
     return jsonify(message="Data updated")

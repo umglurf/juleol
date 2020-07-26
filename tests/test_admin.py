@@ -17,7 +17,7 @@ def test_admin_base(admin_client):
 
         ret = admin_client.get('/admin/')
         assert ret.status_code == 200
-        assert b'<li><a href="/admin/2000">2000</a></li>' in ret.data
+        assert b'<li class="list-group-item list-group-item-secondary"><a class="text-primary" href="/admin/2000">2000</a></li>' in ret.data
 
 def test_add_tasting(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -132,7 +132,7 @@ def test_create_participant(admin_client):
                                         assert SessionMock.mock_calls[5][0] == 'add'
                                         assert SessionMock.mock_calls[5][1] == (db.ScoreXmas(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
                                         assert SessionMock.mock_calls[6][0] == 'commit'
-                                        
+
                                         SessionMock.reset_mock()
                                         SessionMock.commit.side_effect = exc.SQLAlchemyError()
                                         ret = admin_client.post('/admin/2000/participant', data={'name': 'test', 'password': 'test'})

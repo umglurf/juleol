@@ -3,22 +3,26 @@
 
 {% block title %}Juleøl admin{% endblock %}
 {%block content %}
-<h1>Juleøl admin</h1>
-<ul>
+<nav aria-label="breadcrumb bg-secondary">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Admin</li>
+  </ol>
+</nav>
+<h1 class="m-2 text-primary">Juleøl admin</h1>
+<ul class="m-2 list-group">
   {% for tasting in tastings %}
-  <li><a href="/admin/{{ tasting.year }}">{{ tasting.year }}</a></li>
+  <li class="list-group-item list-group-item-secondary"><a class="text-primary" href="/admin/{{ tasting.year }}">{{ tasting.year }}</a></li>
   {% endfor %}
 </ul>
 
-<h2>Create new tasting</h2>
+<h2 class="m-2 text-light">Create new tasting</h2>
 <form method="post">
-  <dl>
-    {{ render_field(form.year) }}
-    {{ render_field(form.beers) }}
-  </dl>
-  <p><input type=submit value="Create"></p>
+  {{ render_field(form.year) }}
+  {{ render_field(form.beers) }}
+  <div class="input-group input-group-sm m-3">
+    <button class="btn btn-primary" type=submit value="Create">Create</button>
+  </div>
 </form>
 
-<p><a href="/">Home</a></p>
 {% endblock %}
-
