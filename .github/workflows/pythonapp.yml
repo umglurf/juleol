@@ -28,7 +28,7 @@ jobs:
     - name: Test with pytest
       run: |
         python setup.py test
-    - uses: actions/upload-artifact@master
+    - uses: actions/upload-artifact@v2
       name: Upload artifiact
       with:
         name: "coverage rapport"
