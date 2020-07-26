@@ -31,11 +31,25 @@
 
 
 <h2 class="m-2 text-light" id="rating_header">Rating for beer</h2>
-{{ render_field(form.look, True) }}
-{{ render_field(form.smell, True) }}
-{{ render_field(form.taste, True) }}
-{{ render_field(form.aftertaste, True) }}
-{{ render_field(form.xmas, True) }}
+<form oninput="result.value=look.value">
+{{ render_field(form.look, True, type="range", step="1") }}
+</form>
+
+<form oninput="result.value=smell.value">
+{{ render_field(form.smell, True, type="range") }}
+</form>
+
+<form oninput="result.value=taste.value">
+{{ render_field(form.taste, True, type="range") }}
+</form>
+
+<form oninput="result.value=aftertaste.value">
+{{ render_field(form.aftertaste, True, type="range") }}
+</form>
+
+<form oninput="result.value=xmas.value">
+{{ render_field(form.xmas, True, type="range") }}
+</form>
 
 {% if heat %}
 {% set beers = g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) %}
@@ -93,19 +107,9 @@
     next_beer();
   });
 
-  $('input').on('focusout', function() {
+  $('input').on('change', function() {
     submit_beer_score($(this).prop('id'));
   });
-  var inputTimeout = null;
-  $('input').on('keyup', function() {
-    if(inputTimeout !== null) {
-      clearTimeout(inputTimeout);
-    }
-    lookTimeout = setTimeout(function () {
-      submit_beer_score($(this).prop('id'));
-    }, 500);
-  });
-
 
   function prev_beer() {
     if(current_beer_pos == 0) {
@@ -191,6 +195,7 @@
           } else {
             $("input#" + key)[0].value = "";
           };
+          $("input#" + key).trigger('input');
         };
       },
       error: function(xhr, ajaxOptions, thrownError) {
@@ -213,7 +218,11 @@
     if(!score) {
       return;
     };
-    $(score_obj).siblings('div[role="status"]').show()
+    if(score_obj[0].checkValidity() === false) {
+      $(score_obj).addClass('is-invalid');
+      return;
+    }
+    $(score_obj).removeClass('is-invalid');
     var beer_number = beers[current_beer_pos];
     data = new Map();
     data[score_type] = score;
@@ -222,16 +231,14 @@
       dataType: "json",
       data: data,
       success: function(data, textStatus, xhr) {
-        $(score_obj).siblings('div[role="status"]').hide()
       },
       error: function(xhr, ajaxOptions, thrownError) {
         try {
           var msg = xhr.responseJSON.error;
+          add_alert($('h1'), msg);
         } catch {
-          var msg = "Error updating score";
+          add_alert($('h1'), "Error updating score");
         }
-        add_alert($('h1'), msg);
-        $(score_obj).siblings('div[role="status"]').hide()
       }
     });
   };
@@ -249,8 +256,9 @@
   $(document).ready(function() {
     get_beer_rating(beers[current_beer_pos]);
     update_beer_page_list();
-    $('input').each(function () {
-      $(this).before('<div class="spinner-border spinner-border-sm" role="status" style="display: none;"> <span class="sr-only">Saving...</span> </div>');
+    $('input').each(function() {
+      var name = $(this).prop('name');
+      $(this).after('<div class="invalid-feedback alert alert-danger" role="alert">The input is not valid</div>')
     });
   });
 

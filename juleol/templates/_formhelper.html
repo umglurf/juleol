@@ -1,6 +1,9 @@
 {% macro render_field(field, no_complete=False) %}
-  <div class="form-group m-3 text-light bg-primary">
+  <div class="form-group form-check m-2 pb-2 pr-2 text-light bg-primary">
   {{ field.label }}
+  {% if 'type' in kwargs and kwargs['type'] == 'range' %}
+  <output for="{{ field.name }}" name="result" class="badge badge-pill badge-secondary ml-3 pl-2 pr-2"></output>
+  {% endif %}
   {%- if no_complete %}
   {{ field(autocapitalize='off', autocomplete='off', autocorrect='off', spellcheck='off', class="form-control", **kwargs)|safe }}
   {%- else %}
