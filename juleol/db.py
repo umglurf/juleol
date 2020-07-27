@@ -3,10 +3,12 @@ from sqlalchemy.sql.expression import union_all
 
 db = SQLAlchemy()
 
+
 class Admins(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
+
 
 class Tastings(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -21,11 +23,13 @@ class Tastings(db.Model):
     score_looks = db.relationship('ScoreLook', back_populates='tasting')
     score_xmases = db.relationship('ScoreXmas', back_populates='tasting')
 
+
 class Notes(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     note = db.Column(db.Text(), nullable=False)
     tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
     tasting = db.relationship('Tastings', back_populates='notes')
+
 
 class Beers(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -42,6 +46,7 @@ class Beers(db.Model):
     score_xmases = db.relationship('ScoreXmas', back_populates='beer')
     __table_args__ = (db.UniqueConstraint('number', 'tasting_id'), )
 
+
 class Heats(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
@@ -49,6 +54,7 @@ class Heats(db.Model):
     tasting = db.relationship('Tastings', back_populates='heats')
     beers = db.relationship('Beers', back_populates='heat')
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
+
 
 class Participants(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -63,6 +69,7 @@ class Participants(db.Model):
     score_xmases = db.relationship('ScoreXmas', back_populates='participant')
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
 
+
 class ScoreTaste(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     score = db.Column(db.SmallInteger, nullable=True)
@@ -74,6 +81,7 @@ class ScoreTaste(db.Model):
     tasting = db.relationship('Tastings', back_populates='score_tastes')
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
     __table_args__ = (db.UniqueConstraint('tasting_id', 'participant_id', 'beer_id'), )
+
 
 class ScoreAftertaste(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -87,6 +95,7 @@ class ScoreAftertaste(db.Model):
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
     __table_args__ = (db.UniqueConstraint('tasting_id', 'participant_id', 'beer_id'), )
 
+
 class ScoreSmell(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     score = db.Column(db.SmallInteger, nullable=True)
@@ -98,6 +107,7 @@ class ScoreSmell(db.Model):
     tasting = db.relationship('Tastings', back_populates='score_smells')
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
     __table_args__ = (db.UniqueConstraint('tasting_id', 'participant_id', 'beer_id'), )
+
 
 class ScoreLook(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
@@ -111,6 +121,7 @@ class ScoreLook(db.Model):
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
     __table_args__ = (db.UniqueConstraint('tasting_id', 'participant_id', 'beer_id'), )
 
+
 class ScoreXmas(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     score = db.Column(db.SmallInteger, nullable=True)
@@ -123,39 +134,119 @@ class ScoreXmas(db.Model):
     __table_args__ = (db.UniqueConstraint('name', 'tasting_id'), )
     __table_args__ = (db.UniqueConstraint('tasting_id', 'participant_id', 'beer_id'), )
 
+
 def get_beer_scores(tasting):
-    s1 = db.session.query(Beers.id.label('beer_id'), Beers.tasting_id.label('tasting_id'), Beers.number.label('number'), ScoreLook.score.label('score'), ScoreLook.participant_id.label('participant_id')).join(ScoreLook)
-    s2 = db.session.query(Beers.id.label('beer_id'), Beers.tasting_id.label('tasting_id'), Beers.number.label('number'), ScoreSmell.score.label('score'), ScoreSmell.participant_id.label('participant_id')).join(ScoreSmell)
-    s3 = db.session.query(Beers.id.label('beer_id'), Beers.tasting_id.label('tasting_id'), Beers.number.label('number'), ScoreTaste.score.label('score'), ScoreTaste.participant_id.label('participant_id')).join(ScoreTaste)
-    s4 = db.session.query(Beers.id.label('beer_id'), Beers.tasting_id.label('tasting_id'), Beers.number.label('number'), ScoreAftertaste.score.label('score'), ScoreAftertaste.participant_id.label('participant_id')).join(ScoreAftertaste)
-    s5 = db.session.query(Beers.id.label('beer_id'), Beers.tasting_id.label('tasting_id'), Beers.number.label('number'), ScoreXmas.score.label('score'), ScoreXmas.participant_id.label('participant_id')).join(ScoreXmas)
+    s1 = db.session.query(
+        Beers.id.label('beer_id'),
+        Beers.tasting_id.label('tasting_id'),
+        Beers.number.label('number'),
+        ScoreLook.score.label('score'),
+        ScoreLook.participant_id.label('participant_id')
+        ).join(ScoreLook)
+    s2 = db.session.query(
+        Beers.id.label('beer_id'),
+        Beers.tasting_id.label('tasting_id'),
+        Beers.number.label('number'),
+        ScoreSmell.score.label('score'),
+        ScoreSmell.participant_id.label('participant_id')
+        ).join(ScoreSmell)
+    s3 = db.session.query(
+        Beers.id.label('beer_id'),
+        Beers.tasting_id.label('tasting_id'),
+        Beers.number.label('number'),
+        ScoreTaste.score.label('score'),
+        ScoreTaste.participant_id.label('participant_id')
+        ).join(ScoreTaste)
+    s4 = db.session.query(
+        Beers.id.label('beer_id'),
+        Beers.tasting_id.label('tasting_id'),
+        Beers.number.label('number'),
+        ScoreAftertaste.score.label('score'),
+        ScoreAftertaste.participant_id.label('participant_id')
+        ).join(ScoreAftertaste)
+    s5 = db.session.query(
+        Beers.id.label('beer_id'),
+        Beers.tasting_id.label('tasting_id'),
+        Beers.number.label('number'),
+        ScoreXmas.score.label('score'),
+        ScoreXmas.participant_id.label('participant_id')
+        ).join(ScoreXmas)
     s = union_all(s1, s2, s3, s4, s5).alias('s')
-    scores = db.session.query(db.func.sum(s.c.score).label('sum'), s.c.beer_id.label('beer_id'), Participants.id.label('participant_id')).join(Participants, s.c.participant_id == Participants.id).group_by(Participants.id, s.c.beer_id, s.c.tasting_id).subquery()
+    scores = db.session.query(
+        db.func.sum(s.c.score).label('sum'),
+        s.c.beer_id.label('beer_id'),
+        Participants.id.label('participant_id')
+        ).join(
+            Participants,
+            s.c.participant_id == Participants.id
+            ).group_by(Participants.id, s.c.beer_id, s.c.tasting_id).subquery()
     details = {}
     for beer in Beers.query.filter(Beers.tasting_id == tasting.id).all():
-        details[beer.number] = db.session.query(scores.c.sum, Participants.name).join(Participants, Participants.id == scores.c.participant_id).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.id == beer.id).all()
+        details[beer.number] = db.session.query(
+            scores.c.sum, Participants.name
+            ).join(
+                Participants, Participants.id == scores.c.participant_id
+                ).join(
+                    Beers, Beers.id == scores.c.beer_id
+                    ).filter(Beers.id == beer.id).all()
     return {
-            "totals": db.session.query(db.func.sum(scores.c.sum).label('sum'), db.func.avg(scores.c.sum).label('avg'), db.func.std(scores.c.sum).label('std'), Beers.name.label('name'), Beers.number.label('number'), Heats.id.label('heat_id'), Heats.name.label('heat_name')).join(Beers, Beers.id == scores.c.beer_id).join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).filter(Beers.tasting_id == tasting.id).group_by(scores.c.beer_id).all(),
+            "totals": db.session.query(
+                db.func.sum(scores.c.sum).label('sum'),
+                db.func.avg(scores.c.sum).label('avg'),
+                db.func.std(scores.c.sum).label('std'),
+                Beers.name.label('name'),
+                Beers.number.label('number'),
+                Heats.id.label('heat_id'),
+                Heats.name.label('heat_name')
+                ).join(
+                    Beers, Beers.id == scores.c.beer_id
+                    ).join(
+                        Heats,
+                        db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''),
+                        isouter=True
+                        ).filter(
+                            Beers.tasting_id == tasting.id
+                            ).group_by(scores.c.beer_id).all(),
             "details": details
             }
 
-def participant_scores(participant):
-    scores = db.session.query(Beers.number.label('number'), Beers.name.label('name'), Heats.id.label('heat_id'), Heats.name.label('heat_name'), ScoreLook.score.label('look'), ScoreSmell.score.label('smell'), ScoreTaste.score.label('taste'), ScoreAftertaste.score.label('aftertaste'), ScoreXmas.score.label('xmas')).\
-            join(Heats, db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''), isouter=True).\
-            join(ScoreLook).\
-            join(ScoreSmell).\
-            join(ScoreTaste).\
-            join(ScoreAftertaste).\
-            join(ScoreXmas).\
-            filter(ScoreLook.participant_id == participant.id).\
-            filter(ScoreSmell.participant_id == participant.id).\
-            filter(ScoreTaste.participant_id == participant.id).\
-            filter(ScoreAftertaste.participant_id == participant.id).\
-            filter(ScoreXmas.participant_id == participant.id).\
-            order_by(Beers.number).\
-            all()
-    return scores
 
-#return db.session.query(scores, Beers.name).join(Beers, Beers.id == scores.c.beer_id).filter(Beers.tasting_id == tasting.id).all()
-#d.db.session.query(scores, d.Participants.name).filter(scores.c.beer_id == 228).join(d.Participants, d.Participants.id == scores.c.participant_id).all()
-#i.db.session.query(d.db.func.sum(scores.c.sum), d.db.func.avg(scores.c.sum), d.db.func.std(scores.c.sum), scores.c.beer_id).filter(scores.c.beer_id > 227).filter(scores.c.beer_id < 231).group_by(scores.c.beer_id).all()
+def participant_scores(participant):
+    scores = db.session.query(
+            Beers.number.label('number'),
+            Beers.name.label('name'),
+            Heats.id.label('heat_id'),
+            Heats.name.label('heat_name'),
+            ScoreLook.score.label('look'),
+            ScoreSmell.score.label('smell'),
+            ScoreTaste.score.label('taste'),
+            ScoreAftertaste.score.label('aftertaste'),
+            ScoreXmas.score.label('xmas')
+            ).join(
+                Heats,
+                db.func.coalesce(Beers.heat_id, '') == db.func.coalesce(Heats.id, ''),
+                isouter=True
+                ).join(
+                    ScoreLook
+                    ).join(
+                        ScoreSmell
+                        ).join(
+                            ScoreTaste
+                            ).join(
+                                ScoreAftertaste
+                                ).join(
+                                    ScoreXmas
+                                    ).filter(
+                                        ScoreLook.participant_id == participant.id
+                                        ).filter(
+                                            ScoreSmell.participant_id == participant.id
+                                            ).filter(
+                                                ScoreTaste.participant_id == participant.id
+                                                ).filter(
+                                                    ScoreAftertaste.participant_id == participant.id
+                                                    ).filter(
+                                                        ScoreXmas.participant_id == participant.id
+                                                        ).order_by(
+                                                            Beers.number
+                                                            ).all()
+    return scores

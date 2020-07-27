@@ -4,6 +4,7 @@ from flask_dance.contrib.github import make_github_blueprint, github
 import juleol.oauth_generic
 import os
 
+
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object('juleol.default_config')
@@ -31,6 +32,6 @@ def create_app(test_config=None):
     app.register_blueprint(oauth_bp, url_prefix="/admin/login")
 
     db.db.init_app(app)
-    migrate = Migrate(app, db.db)
+    Migrate(app, db.db)
 
     return app

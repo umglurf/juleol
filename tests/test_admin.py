@@ -1,13 +1,14 @@
 import json
 from juleol import db
-import pytest
 from sqlalchemy import exc
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 
 def test_login(admin_noauth_client):
     ret = admin_noauth_client.get('/admin/')
     assert ret.status_code == 302
     assert ret.headers['Location'] == 'http://localhost/admin/login/github'
+
 
 def test_admin_base(admin_client):
     with patch('juleol.db.Tastings') as MockTastings:
@@ -17,7 +18,8 @@ def test_admin_base(admin_client):
 
         ret = admin_client.get('/admin/')
         assert ret.status_code == 200
-        assert b'<li class="list-group-item list-group-item-secondary"><a class="text-primary" href="/admin/2000">2000</a></li>' in ret.data
+        assert b'<li class="list-group-item list-group-item-secondary"><a class="text-primary" href="/admin/2000">2000</a></li>' in ret.data  # noqa: E501
+
 
 def test_add_tasting(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -28,17 +30,22 @@ def test_add_tasting(admin_client):
                 expected = [({'year': 2000},)]
                 assert TastingsMock.call_args_list == expected
                 expected = [
-                        ({'number': 1, 'name': 'Unrevealed 1', 'tasting': db.Tastings(year = 2000)},),
-                        ({'number': 2, 'name': 'Unrevealed 2', 'tasting': db.Tastings(year = 2000)},)
+                        ({'number': 1, 'name': 'Unrevealed 1', 'tasting': db.Tastings(year=2000)},),
+                        ({'number': 2, 'name': 'Unrevealed 2', 'tasting': db.Tastings(year=2000)},)
                 ]
                 assert BeersMock.call_args_list == expected
                 assert SessionMock.mock_calls[0][0] == 'add'
-                assert SessionMock.mock_calls[0][1] == (db.Tastings(year = 2000),)
+                assert SessionMock.mock_calls[0][1] == (db.Tastings(year=2000),)
                 assert SessionMock.mock_calls[1][0] == 'add'
-                assert SessionMock.mock_calls[1][1] == (db.Beers(number = 1, name = 'Unrevealed 1', tasting = db.Tastings(year = 2000)),)
+                assert SessionMock.mock_calls[1][1] == (
+                    db.Beers(number=1, name='Unrevealed 1', tasting=db.Tastings(year=2000)),
+                    )
                 assert SessionMock.mock_calls[2][0] == 'add'
-                assert SessionMock.mock_calls[2][1] == (db.Beers(number = 2, name = 'Unrevealed 2', tasting = db.Tastings(year = 2000)),)
+                assert SessionMock.mock_calls[2][1] == (
+                    db.Beers(number=2, name='Unrevealed 2', tasting=db.Tastings(year=2000)),
+                    )
                 assert SessionMock.mock_calls[3][0] == 'commit'
+
 
 def test_add_tasting_fail(admin_client):
     with patch('juleol.db.db.session') as SessionMock:
@@ -47,6 +54,7 @@ def test_add_tasting_fail(admin_client):
         assert ret.status_code == 200
         assert b'Error creating tasting' in ret.data
         assert SessionMock.mock_calls[4][0] == 'rollback'
+
 
 def test_year(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -61,6 +69,7 @@ def test_year(admin_client):
         assert ret.headers['Location'] == 'http://localhost/admin/'
         ret = admin_client.get('/admin/')
         assert b'Invalid year' in ret.data
+
 
 def test_create_participant(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -86,7 +95,7 @@ def test_create_participant(admin_client):
         ret = admin_client.get('/admin/2000')
         assert b'Invalid form data' in ret.data
 
-        with patch('juleol.db.Beers') as BeersMock:
+        with patch('juleol.db.Beers') as BeersMock:  # noqa: F841
             with patch('juleol.db.Participants') as ParticpantsMock:
                 with patch('juleol.db.ScoreTaste') as MockScoreTaste:
                     with patch('juleol.db.ScoreAftertaste') as MockScoreAftertaste:
@@ -97,7 +106,10 @@ def test_create_participant(admin_client):
                                         from flask_bcrypt import Bcrypt
                                         bcrypt = Bcrypt()
 
-                                        ret = admin_client.post('/admin/2000/participant', data={'name': 'test', 'password': 'test'})
+                                        ret = admin_client.post(
+                                            '/admin/2000/participant',
+                                            data={'name': 'test', 'password': 'test'}
+                                            )
                                         assert ret.status_code == 302
                                         assert ret.headers['Location'] == 'http://localhost/admin/2000'
                                         assert ParticpantsMock.mock_calls[0][2]['tasting'] == test_tasting
@@ -120,27 +132,63 @@ def test_create_participant(admin_client):
                                         assert MockScoreXmas.mock_calls[0][2]['tasting'] == test_tasting
 
                                         assert SessionMock.mock_calls[0][0] == 'add'
-                                        assert SessionMock.mock_calls[0][1] == (db.Participants(name = 'test', password = 'test', tasting = test_tasting),)
+                                        assert SessionMock.mock_calls[0][1] == (
+                                            db.Participants(name='test', password='test', tasting=test_tasting),
+                                            )
                                         assert SessionMock.mock_calls[1][0] == 'add'
-                                        assert SessionMock.mock_calls[1][1] == (db.ScoreLook(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
+                                        assert SessionMock.mock_calls[1][1] == (
+                                            db.ScoreLook(
+                                                tasting=test_tasting,
+                                                beer=test_beer,
+                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                ),
+                                            )
                                         assert SessionMock.mock_calls[2][0] == 'add'
-                                        assert SessionMock.mock_calls[2][1] == (db.ScoreSmell(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
+                                        assert SessionMock.mock_calls[2][1] == (
+                                            db.ScoreSmell(
+                                                tasting=test_tasting,
+                                                beer=test_beer,
+                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                ),
+                                            )
                                         assert SessionMock.mock_calls[3][0] == 'add'
-                                        assert SessionMock.mock_calls[3][1] == (db.ScoreTaste(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
+                                        assert SessionMock.mock_calls[3][1] == (
+                                            db.ScoreTaste(
+                                                tasting=test_tasting,
+                                                beer=test_beer,
+                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                ),
+                                            )
                                         assert SessionMock.mock_calls[4][0] == 'add'
-                                        assert SessionMock.mock_calls[4][1] == (db.ScoreAftertaste(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
+                                        assert SessionMock.mock_calls[4][1] == (
+                                            db.ScoreAftertaste(
+                                                tasting=test_tasting,
+                                                beer=test_beer,
+                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                ),
+                                            )
                                         assert SessionMock.mock_calls[5][0] == 'add'
-                                        assert SessionMock.mock_calls[5][1] == (db.ScoreXmas(tasting = test_tasting, beer = test_beer, participant = db.Participants(name = 'test', password = 'test', tasting = test_tasting)),)
+                                        assert SessionMock.mock_calls[5][1] == (
+                                            db.ScoreXmas(
+                                                tasting=test_tasting,
+                                                beer=test_beer,
+                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                ),
+                                            )
                                         assert SessionMock.mock_calls[6][0] == 'commit'
 
                                         SessionMock.reset_mock()
                                         SessionMock.commit.side_effect = exc.SQLAlchemyError()
-                                        ret = admin_client.post('/admin/2000/participant', data={'name': 'test', 'password': 'test'})
+                                        ret = admin_client.post(
+                                            '/admin/2000/participant',
+                                            data={'name': 'test', 'password': 'test'}
+                                            )
                                         assert ret.status_code == 302
                                         assert ret.headers['Location'] == 'http://localhost/admin/2000'
                                         ret = admin_client.get('/admin/2000')
                                         assert b'Error creating participant' in ret.data
                                         assert SessionMock.mock_calls[7][0] == 'rollback'
+
 
 def test_update_participant(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -191,6 +239,7 @@ def test_update_participant(admin_client):
                 assert b'Error updating password' in ret.data
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
+
 def test_create_heat(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
         test_tasting = db.Tastings()
@@ -217,7 +266,7 @@ def test_create_heat(admin_client):
                 assert HeatsMock.mock_calls[0][2]['name'] == 'test'
                 assert HeatsMock.mock_calls[0][2]['tasting'] == test_tasting
                 assert SessionMock.mock_calls[0][0] == 'add'
-                assert SessionMock.mock_calls[0][1] == (db.Heats(name = 'test', tasting = test_tasting), )
+                assert SessionMock.mock_calls[0][1] == (db.Heats(name='test', tasting=test_tasting), )
                 assert SessionMock.mock_calls[1][0] == 'commit'
 
                 SessionMock.reset_mock()
@@ -229,8 +278,9 @@ def test_create_heat(admin_client):
                 assert b'Error creating heat' in ret.data
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
+
 def test_get_update_heat(admin_client):
-    with patch('juleol.db.Heats') as HeatsMock:
+    with patch('juleol.db.Heats') as HeatsMock:  # noqa: F841
         db.Heats.query.filter.return_value.first.return_value = None
         ret = admin_client.get('/admin/heat/1')
         assert ret.status_code == 404
@@ -250,7 +300,7 @@ def test_get_update_heat(admin_client):
             ret = admin_client.put('/admin/heat/1')
             assert ret.status_code == 400
             assert json.loads(ret.data)['error'] == 'Invalid arguments'
-            ret = admin_client.put('/admin/heat/1', data = {'name': 'new test'})
+            ret = admin_client.put('/admin/heat/1', data={'name': 'new test'})
             assert ret.status_code == 200
             assert json.loads(ret.data)['message'] == 'Heat updated'
             assert test_heat.name == 'new test'
@@ -268,13 +318,14 @@ def test_get_update_heat(admin_client):
 
             SessionMock.reset_mock()
             SessionMock.commit.side_effect = exc.SQLAlchemyError()
-            ret = admin_client.put('/admin/heat/1', data = {'name': 'new test'})
+            ret = admin_client.put('/admin/heat/1', data={'name': 'new test'})
             assert ret.status_code == 500
             assert json.loads(ret.data)['error'] == 'Error updating heat'
             ret = admin_client.delete('/admin/heat/1')
             assert ret.status_code == 500
             assert json.loads(ret.data)['error'] == 'Error deleting heat'
             assert SessionMock.mock_calls[2][0] == 'rollback'
+
 
 def test_create_note(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
@@ -302,7 +353,7 @@ def test_create_note(admin_client):
                 assert NotesMock.mock_calls[0][2]['note'] == 'test'
                 assert NotesMock.mock_calls[0][2]['tasting'] == test_tasting
                 assert SessionMock.mock_calls[0][0] == 'add'
-                assert SessionMock.mock_calls[0][1] == (db.Notes(note = 'test', tasting = test_tasting), )
+                assert SessionMock.mock_calls[0][1] == (db.Notes(note='test', tasting=test_tasting), )
                 assert SessionMock.mock_calls[1][0] == 'commit'
 
                 SessionMock.reset_mock()
@@ -314,8 +365,9 @@ def test_create_note(admin_client):
                 assert b'Error creating note' in ret.data
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
+
 def test_get_update_note(admin_client):
-    with patch('juleol.db.Notes') as NotesMock:
+    with patch('juleol.db.Notes') as NotesMock:  # noqa: F841
         db.Notes.query.filter.return_value.first.return_value = None
         ret = admin_client.get('/admin/note/1')
         assert ret.status_code == 404
@@ -335,7 +387,7 @@ def test_get_update_note(admin_client):
             ret = admin_client.put('/admin/note/1')
             assert ret.status_code == 400
             assert json.loads(ret.data)['error'] == 'Invalid arguments'
-            ret = admin_client.put('/admin/note/1', data = {'note': 'new test'})
+            ret = admin_client.put('/admin/note/1', data={'note': 'new test'})
             assert ret.status_code == 200
             assert json.loads(ret.data)['message'] == 'Note updated'
             assert test_note.note == 'new test'
@@ -353,7 +405,7 @@ def test_get_update_note(admin_client):
 
             SessionMock.reset_mock()
             SessionMock.commit.side_effect = exc.SQLAlchemyError()
-            ret = admin_client.put('/admin/note/1', data = {'note': 'new test'})
+            ret = admin_client.put('/admin/note/1', data={'note': 'new test'})
             assert ret.status_code == 500
             assert json.loads(ret.data)['error'] == 'Error updating note'
             ret = admin_client.delete('/admin/note/1')
@@ -361,8 +413,9 @@ def test_get_update_note(admin_client):
             assert json.loads(ret.data)['error'] == 'Error deleting note'
             assert SessionMock.mock_calls[2][0] == 'rollback'
 
+
 def test_update_beer(admin_client):
-    with patch('juleol.db.Beers') as BeersMock:
+    with patch('juleol.db.Beers') as BeersMock:  # noqa: F841
         db.Beers.query.filter.return_value.first.return_value = None
         ret = admin_client.put('/admin/beer/1')
         assert ret.status_code == 404
@@ -378,7 +431,7 @@ def test_update_beer(admin_client):
         assert json.loads(ret.data)['error'] == 'Invalid arguments'
 
         with patch('juleol.db.db.session') as SessionMock:
-            ret = admin_client.put('/admin/beer/1', data={'name': 'new name'} )
+            ret = admin_client.put('/admin/beer/1', data={'name': 'new name'})
             assert ret.status_code == 200
             assert json.loads(ret.data)['message'] == 'Beer name updated'
             assert test_beer.name == 'new name'
@@ -388,7 +441,7 @@ def test_update_beer(admin_client):
 
             SessionMock.reset_mock()
             SessionMock.commit.side_effect = exc.SQLAlchemyError()
-            ret = admin_client.put('/admin/beer/1', data={'name': 'new name'} )
+            ret = admin_client.put('/admin/beer/1', data={'name': 'new name'})
             assert ret.status_code == 500
             assert json.loads(ret.data)['error'] == 'Error updating beer name'
             assert SessionMock.mock_calls[0][0] == 'add'
@@ -396,20 +449,20 @@ def test_update_beer(admin_client):
             assert SessionMock.mock_calls[1][0] == 'commit'
             assert SessionMock.mock_calls[2][0] == 'rollback'
 
-            with patch('juleol.db.Heats') as HeatsMock:
+            with patch('juleol.db.Heats') as HeatsMock:  # noqa: F841
                 test_heat = db.Heats()
                 test_heat.id = 1
                 test_heat.name = 'test'
 
                 db.Heats.query.filter.return_value.filter.return_value.first.return_value = None
-                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1})
                 assert ret.status_code == 404
                 assert json.loads(ret.data)['error'] == 'Invalid heat'
 
                 db.Heats.query.filter.return_value.filter.return_value.first.return_value = test_heat
                 SessionMock.reset_mock()
                 SessionMock.commit.side_effect = None
-                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1})
                 assert ret.status_code == 200
                 assert json.loads(ret.data)['message'] == 'Beer heat updated'
                 assert test_beer.name == 'new name'
@@ -420,13 +473,14 @@ def test_update_beer(admin_client):
 
                 SessionMock.commit.side_effect = exc.SQLAlchemyError()
                 SessionMock.reset_mock()
-                ret = admin_client.put('/admin/beer/1', data={'heat': 1} )
+                ret = admin_client.put('/admin/beer/1', data={'heat': 1})
                 assert ret.status_code == 500
                 assert json.loads(ret.data)['error'] == 'Error updating beer heat'
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
+
 def test_delete_beer_heat(admin_client):
-    with patch('juleol.db.Beers') as BeersMock:
+    with patch('juleol.db.Beers') as BeersMock:  # noqa: F841
         db.Beers.query.filter.return_value.first.return_value = None
         ret = admin_client.delete('/admin/beer/1/heat')
         assert ret.status_code == 404

@@ -1,31 +1,54 @@
-from flask import Flask, Blueprint, render_template, request, session, jsonify, redirect, url_for, flash, g, current_app
+from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for, flash, g, current_app
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
 import re
 from sqlalchemy import exc
-from wtforms import Form, IntegerField, validators, HiddenField, PasswordField, StringField, SelectField
+from wtforms import Form, IntegerField, validators, PasswordField, StringField, SelectField
 from wtforms.widgets.html5 import NumberInput
 
 bp = Blueprint('view', __name__)
 bcrypt = Bcrypt()
 
+
 class LoginForm(Form):
     year = SelectField("Year", [validators.input_required()], coerce=int)
     name = StringField("Name", [validators.input_required(), validators.Length(1, 255)])
-    password = PasswordField("Password", [validators.input_required(), validators.Length(1,255)])
+    password = PasswordField("Password", [validators.input_required(), validators.Length(1, 255)])
+
 
 class RatingForm(Form):
-    look = IntegerField('Look (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
-    smell = IntegerField('Smell (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
-    taste = IntegerField('Taste (0-9)', [validators.optional(), validators.NumberRange(0, 9)], widget = NumberInput(min=0, max=9))
-    aftertaste = IntegerField('Aftertaste (0-5)', [validators.optional(), validators.NumberRange(0, 5)], widget = NumberInput(min=0, max=5))
-    xmas = IntegerField('Xmas (0-3)', [validators.optional(), validators.NumberRange(0, 3)], widget = NumberInput(min=0, max=3))
+    look = IntegerField(
+        'Look (0-3)',
+        [validators.optional(), validators.NumberRange(0, 3)],
+        widget=NumberInput(min=0, max=3)
+        )
+    smell = IntegerField(
+        'Smell (0-3)',
+        [validators.optional(), validators.NumberRange(0, 3)],
+        widget=NumberInput(min=0, max=3)
+        )
+    taste = IntegerField(
+        'Taste (0-9)',
+        [validators.optional(), validators.NumberRange(0, 9)],
+        widget=NumberInput(min=0, max=9)
+        )
+    aftertaste = IntegerField(
+        'Aftertaste (0-5)',
+        [validators.optional(), validators.NumberRange(0, 5)],
+        widget=NumberInput(min=0, max=5)
+        )
+    xmas = IntegerField(
+        'Xmas (0-3)',
+        [validators.optional(), validators.NumberRange(0, 3)],
+        widget=NumberInput(min=0, max=3)
+        )
+
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not 'user_id' in session:
+        if 'user_id' not in session:
             return redirect(url_for("view.login"))
         else:
             g.participant = db.Participants.query.filter(db.Participants.id == session['user_id']).first()
@@ -34,6 +57,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @bp.route('/', methods=["GET"])
 def index():
     form = LoginForm(request.form)
@@ -41,13 +65,18 @@ def index():
     tastings = db.Tastings.query.all()
     return render_template('index.html', tastings=tastings, form=form)
 
+
 @bp.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm(request.form)
     form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
     if request.method == "POST" and form.validate():
         tasting = db.Tastings.query.filter(db.Tastings.year == form.year.data).first()
-        participant = db.Participants.query.filter(db.Participants.tasting == tasting).filter(db.Participants.name == form.name.data).first()
+        participant = db.Participants.query.filter(
+            db.Participants.tasting == tasting
+            ).filter(
+                db.Participants.name == form.name.data
+                ).first()
         if participant:
             if bcrypt.check_password_hash(participant.password, form.password.data):
                 session['user_id'] = participant.id
@@ -59,10 +88,12 @@ def login():
 
     return render_template('login.html', form=form)
 
+
 @bp.route('/logout', methods=["GET"])
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('view.index'))
+
 
 @bp.route('/result/<int:year>')
 def result(year):
@@ -95,14 +126,21 @@ def result(year):
                     }
         result['participants'] = {}
         for participant in participants:
-            result['participants'][participant.id] = { 'name': participant.name }
+            result['participants'][participant.id] = {'name': participant.name}
         return jsonify(result)
     else:
-        return render_template('result.html', beer_scores = beer_scores, tasting = tasting, participants = participants, heat=heat)
+        return render_template('result.html', beer_scores=beer_scores, tasting=tasting, participants=participants, heat=heat)
+
 
 @bp.route('/result/<int:year>/<int:participant_id>')
 def participant_result(year, participant_id):
-    participant = db.Participants.query.join(db.Tastings).filter(db.Participants.id == participant_id).filter(db.Tastings.year == year).one()
+    participant = db.Participants.query.join(
+        db.Tastings
+        ).filter(
+            db.Participants.id == participant_id
+            ).filter(
+                db.Tastings.year == year
+                ).one()
     if not participant:
         flash("Invalid participant", 'error')
         return redirect(url_for('view.index'))
@@ -114,7 +152,8 @@ def participant_result(year, participant_id):
         scores = [s for s in scores if s.heat_id == heat]
     else:
         heat = None
-    return render_template('participant_result.html', participant = participant, scores = scores, heat = heat)
+    return render_template('participant_result.html', participant=participant, scores=scores, heat=heat)
+
 
 @bp.route('/rate/<int:year>', methods=["GET"])
 @login_required
@@ -130,26 +169,47 @@ def rate(year):
         heat = None
     return render_template('rate.html', form=form, heat=heat)
 
+
 @bp.route('/rate/<int:year>/<int:beer_number>', methods=["GET", "PUT"])
 @login_required
 def rate_beer(year, beer_number):
     if not g.participant.tasting.year == year:
-        response = jsonify(error = "Invalid year for this user")
+        response = jsonify(error="Invalid year for this user")
         response.status_code = 400
         return response
 
     beer = db.Beers.query.filter(db.Beers.tasting == g.participant.tasting).filter(db.Beers.number == beer_number).first()
     if not beer:
-        response = jsonify(error = "Invalid beer")
+        response = jsonify(error="Invalid beer")
         response.status_code = 400
         return response
 
     if request.method == 'GET':
-        taste = db.ScoreTaste.query.filter(db.ScoreTaste.participant == g.participant).filter(db.ScoreTaste.beer == beer).first()
-        aftertaste = db.ScoreAftertaste.query.filter(db.ScoreAftertaste.participant == g.participant).filter(db.ScoreAftertaste.beer == beer).first()
-        look = db.ScoreLook.query.filter(db.ScoreLook.participant == g.participant).filter(db.ScoreLook.beer == beer).first()
-        smell = db.ScoreSmell.query.filter(db.ScoreSmell.participant == g.participant).filter(db.ScoreSmell.beer == beer).first()
-        xmas = db.ScoreXmas.query.filter(db.ScoreXmas.participant == g.participant).filter(db.ScoreXmas.beer == beer).first()
+        taste = db.ScoreTaste.query.filter(
+            db.ScoreTaste.participant == g.participant
+            ).filter(
+                db.ScoreTaste.beer == beer
+                ).first()
+        aftertaste = db.ScoreAftertaste.query.filter(
+            db.ScoreAftertaste.participant == g.participant
+            ).filter(
+                db.ScoreAftertaste.beer == beer
+                ).first()
+        look = db.ScoreLook.query.filter(
+            db.ScoreLook.participant == g.participant
+            ).filter(
+                db.ScoreLook.beer == beer
+                ).first()
+        smell = db.ScoreSmell.query.filter(
+                db.ScoreSmell.participant == g.participant
+                ).filter(
+                    db.ScoreSmell.beer == beer
+                    ).first()
+        xmas = db.ScoreXmas.query.filter(
+            db.ScoreXmas.participant == g.participant
+            ).filter(
+                db.ScoreXmas.beer == beer
+                ).first()
 
         data = {
                 'taste': taste.score,
@@ -164,29 +224,49 @@ def rate_beer(year, beer_number):
     form = RatingForm(request.form)
     if not form.validate():
         error_msg = ["{}: {}".format(k, ", ".join(v)) for k, v in form.errors.items()]
-        response = jsonify(error = error_msg)
+        response = jsonify(error=error_msg)
         response.status_code = 400
         return response
 
     try:
         if form.look.data is not None:
-            look = db.ScoreLook.query.filter(db.ScoreLook.participant == g.participant).filter(db.ScoreLook.beer == beer).first()
+            look = db.ScoreLook.query.filter(
+                db.ScoreLook.participant == g.participant
+                ).filter(
+                    db.ScoreLook.beer == beer
+                    ).first()
             look.score = form.look.data
             db.db.session.add(look)
         if form.smell.data is not None:
-            smell = db.ScoreSmell.query.filter(db.ScoreSmell.participant == g.participant).filter(db.ScoreSmell.beer == beer).first()
+            smell = db.ScoreSmell.query.filter(
+                db.ScoreSmell.participant == g.participant
+                ).filter(
+                    db.ScoreSmell.beer == beer
+                    ).first()
             smell.score = form.smell.data
             db.db.session.add(smell)
         if form.taste.data is not None:
-            taste = db.ScoreTaste.query.filter(db.ScoreTaste.participant == g.participant).filter(db.ScoreTaste.beer == beer).first()
+            taste = db.ScoreTaste.query.filter(
+                db.ScoreTaste.participant == g.participant
+                ).filter(
+                    db.ScoreTaste.beer == beer
+                    ).first()
             taste.score = form.taste.data
             db.db.session.add(taste)
         if form.aftertaste.data is not None:
-            aftertaste = db.ScoreAftertaste.query.filter(db.ScoreAftertaste.participant == g.participant).filter(db.ScoreAftertaste.beer == beer).first()
+            aftertaste = db.ScoreAftertaste.query.filter(
+                db.ScoreAftertaste.participant == g.participant
+                ).filter(
+                    db.ScoreAftertaste.beer == beer
+                    ).first()
             aftertaste.score = form.aftertaste.data
             db.db.session.add(aftertaste)
         if form.xmas.data is not None:
-            xmas = db.ScoreXmas.query.filter(db.ScoreXmas.participant == g.participant).filter(db.ScoreXmas.beer == beer).first()
+            xmas = db.ScoreXmas.query.filter(
+                db.ScoreXmas.participant == g.participant
+                ).filter(
+                    db.ScoreXmas.beer == beer
+                    ).first()
             xmas.score = form.xmas.data
             db.db.session.add(xmas)
         db.db.session.commit()
