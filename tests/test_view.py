@@ -1,8 +1,8 @@
-import pytest
 import json
 from juleol import db
 from sqlalchemy import exc
 from unittest.mock import patch, MagicMock
+
 
 def test_index(client):
     with patch('juleol.db.Tastings') as MockTastings:
@@ -14,6 +14,7 @@ def test_index(client):
         assert b'/result/2000' in ret.data
         assert b'Enter rating' not in ret.data
 
+
 def test_login(client):
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
     assert ret.status_code == 302
@@ -24,27 +25,29 @@ def test_login(client):
     ret = client.get('/')
     assert b'Enter rating' not in ret.data
 
+
 def test_login_fail(client):
-    #test invalid password
+    # test invalid password
     ret = client.post("/login", data={'name': 'test', 'password': 'bogus', 'year': '2000'})
     assert ret.status_code == 200
     assert b'Invalid user or password' in ret.data
 
-    #test invalid username
+    # test invalid username
     ret = client.post("/login", data={'name': 'bogus', 'password': 'bogus', 'year': '2000'})
     assert ret.status_code == 200
     assert b'Invalid user or password' in ret.data
 
-    #test invalid year
+    # test invalid year
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '200'})
     assert ret.status_code == 200
     assert b'Not a valid choice' in ret.data
 
-    #test if participant: path
+    # test if participant: path
     db.Participants.query.filter.return_value.filter.return_value.first.return_value = None
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
     assert ret.status_code == 200
     assert b'Invalid user or password' in ret.data
+
 
 def test_invalid_userid_in_session(client):
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
@@ -54,6 +57,7 @@ def test_invalid_userid_in_session(client):
     db.Participants.query.filter.return_value.first.return_value = None
     ret = client.get('/rate/2000')
     assert ret.status_code == 302
+
 
 def test_result(client):
     beer_sum = MagicMock()
@@ -74,13 +78,16 @@ def test_result(client):
     participant.id = 1
     participant.name = 'foo'
     db.Participants.query.filter.return_value.all.return_value = [participant]
-    with patch('juleol.db.get_beer_scores', return_value = {
-        'totals': [
-            beer_sum,
-            beer_sum2
-        ],
-        'details': []
-        }):
+    with patch(
+            'juleol.db.get_beer_scores',
+            return_value={
+                'totals': [
+                    beer_sum,
+                    beer_sum2
+                    ],
+                'details': []
+                }
+            ):
 
         ret = client.get('/result/2000', headers={'Content-Type': 'application/json'})
         assert ret.status_code == 200
@@ -117,6 +124,7 @@ def test_invalid_result_year(client):
     assert ret.status_code == 302
     assert ret.headers['Location'] == 'http://localhost/'
 
+
 def test_result_participant(client):
     score = MagicMock()
     score.number = 1
@@ -137,10 +145,13 @@ def test_result_participant(client):
     score2.xmas = 1
     score2.heat_id = 1
     score2.heat_name = 'test'
-    with patch('juleol.db.participant_scores', return_value = [
-        score,
-        score2
-        ]):
+    with patch(
+            'juleol.db.participant_scores',
+            return_value=[
+                score,
+                score2
+                ]
+            ):
         ret = client.get('/result/2000/1')
         assert ret.status_code == 200
         assert b'<td class="title"><span>test 1</span></td>' in ret.data
@@ -148,14 +159,16 @@ def test_result_participant(client):
 
         ret = client.get('/result/2000/1?heat=1')
         assert ret.status_code == 200
-        assert not b'<td class="title"><span>test 1</span></td>' in ret.data
+        assert b'<td class="title"><span>test 1</span></td>' not in ret.data
         assert b'<td class="title"><span>test 2</span></td>' in ret.data
+
 
 def test_result_invalid_participant(client):
     db.Participants.query.join.return_value.filter.return_value.filter.return_value.one.return_value = None
     ret = client.get('/result/2000/1')
     assert ret.status_code == 302
     assert ret.headers['Location'] == 'http://localhost/'
+
 
 def test_rate(client):
     ret = client.get('/rate/2000')
@@ -168,10 +181,12 @@ def test_rate(client):
     ret = client.get('/rate/2001')
     assert ret.status_code == 302
 
+
 def test_rate_invalid_year(client):
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
     ret = client.get('/rate/1000/1')
     assert ret.status_code == 400
+
 
 def test_rate_invalid_beer(client):
     with patch('juleol.db.Beers') as MockBeers:
@@ -180,14 +195,15 @@ def test_rate_invalid_beer(client):
         ret = client.get('/rate/2000/1')
         assert ret.status_code == 400
 
+
 def test_get_rate_beer(client):
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
-    with patch('juleol.db.Beers') as MockBeers:
-        with patch('juleol.db.ScoreTaste') as MockScoreTaste:
-            with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:
-                with patch('juleol.db.ScoreLook') as MockScoreLook:
-                    with patch('juleol.db.ScoreSmell') as MockScoreSmell:
-                        with patch('juleol.db.ScoreXmas') as MockScoreXmas:
+    with patch('juleol.db.Beers') as MockBeers:  # noqa: F841
+        with patch('juleol.db.ScoreTaste') as MockScoreTaste:  # noqa: F841
+            with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:  # noqa: F841
+                with patch('juleol.db.ScoreLook') as MockScoreLook:  # noqa: F841
+                    with patch('juleol.db.ScoreSmell') as MockScoreSmell:  # noqa: F841
+                        with patch('juleol.db.ScoreXmas') as MockScoreXmas:  # noqa: F841
                             test_beer = db.Beers()
                             test_beer.id = 1
                             test_beer.name = 'test'
@@ -208,14 +224,15 @@ def test_get_rate_beer(client):
                             assert data['smell'] == 10
                             assert data['xmas'] == 10
 
+
 def test_put_rate_beer(client):
     ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
-    with patch('juleol.db.Beers') as MockBeers:
-        with patch('juleol.db.ScoreTaste') as MockScoreTaste:
-            with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:
-                with patch('juleol.db.ScoreLook') as MockScoreLook:
-                    with patch('juleol.db.ScoreSmell') as MockScoreSmell:
-                        with patch('juleol.db.ScoreXmas') as MockScoreXmas:
+    with patch('juleol.db.Beers') as MockBeers:  # noqa: F841
+        with patch('juleol.db.ScoreTaste') as MockScoreTaste:  # noqa: F841
+            with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:  # noqa: F841
+                with patch('juleol.db.ScoreLook') as MockScoreLook:  # noqa: F841
+                    with patch('juleol.db.ScoreSmell') as MockScoreSmell:  # noqa: F841
+                        with patch('juleol.db.ScoreXmas') as MockScoreXmas:  # noqa: F841
                             test_beer = db.Beers()
                             test_beer.id = 1
                             test_beer.name = 'test'
