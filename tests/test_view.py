@@ -1,3 +1,4 @@
+import pytest
 import json
 from juleol import db
 from sqlalchemy import exc
@@ -14,49 +15,40 @@ def test_index(client):
         assert b'/result/2000' in ret.data
         assert b'Enter rating' not in ret.data
 
+@pytest.mark.usefixtures("betamax_google")
+def test_login_logout(client_authorized):
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    assert ret.status_code == 302
+    assert ret.headers['Location'] == 'http://localhost/login/google'
 
-def test_login(client):
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
+    ret = client_authorized.get('/login')
     assert ret.status_code == 302
-    ret = client.get('/')
+    assert ret.headers['Location'] == 'http://localhost/'
+
+    ret = client_authorized.get('/')
+    assert b'Login successfull' in ret.data
     assert b'Enter rating' in ret.data
-    ret = client.get('/logout')
+
+    ret = client_authorized.get('/logout')
     assert ret.status_code == 302
-    ret = client.get('/')
+    ret = client_authorized.get('/')
     assert b'Enter rating' not in ret.data
 
 
-def test_login_fail(client):
-    # test invalid password
-    ret = client.post("/login", data={'name': 'test', 'password': 'bogus', 'year': '2000'})
-    assert ret.status_code == 200
-    assert b'Invalid user or password' in ret.data
 
-    # test invalid username
-    ret = client.post("/login", data={'name': 'bogus', 'password': 'bogus', 'year': '2000'})
-    assert ret.status_code == 200
-    assert b'Invalid user or password' in ret.data
-
-    # test invalid year
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '200'})
-    assert ret.status_code == 200
-    assert b'Not a valid choice' in ret.data
-
-    # test if participant: path
-    db.Participants.query.filter.return_value.filter.return_value.first.return_value = None
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
-    assert ret.status_code == 200
-    assert b'Invalid user or password' in ret.data
-
-
-def test_invalid_userid_in_session(client):
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
+@pytest.mark.usefixtures("betamax_google")
+def test_login_fail(client_invalid_email):
+    ret = client_invalid_email.post("/login", data={'year': '2000'})
     assert ret.status_code == 302
-    ret = client.get('/rate/2000')
-    assert ret.status_code == 200
-    db.Participants.query.filter.return_value.first.return_value = None
-    ret = client.get('/rate/2000')
+    assert ret.headers['Location'] == 'http://localhost/login/google'
+
+    ret = client_invalid_email.get('/login')
     assert ret.status_code == 302
+    assert ret.headers['Location'] == 'http://localhost/'
+
+    ret = client_invalid_email.get('/')
+    assert b'No user with email test@example.com registered for year 2000' in ret.data
+    assert b'Enter rating' not in ret.data
 
 
 def test_result(client):
@@ -170,34 +162,42 @@ def test_result_invalid_participant(client):
     assert ret.headers['Location'] == 'http://localhost/'
 
 
-def test_rate(client):
-    ret = client.get('/rate/2000')
+@pytest.mark.usefixtures("betamax_google")
+def test_rate(client_authorized):
+    ret = client_authorized.get('/rate/2000')
     assert ret.status_code == 302
-    assert ret.headers['Location'] == 'http://localhost/login'
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
-    ret = client.get('/rate/2000')
+    assert ret.headers['Location'] == 'http://localhost/'
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    ret = client_authorized.get('/login')
+    ret = client_authorized.get('/rate/2000')
     assert ret.status_code == 200
 
-    ret = client.get('/rate/2001')
+    ret = client_authorized.get('/rate/2001')
     assert ret.status_code == 302
 
 
-def test_rate_invalid_year(client):
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
-    ret = client.get('/rate/1000/1')
+@pytest.mark.usefixtures("betamax_google")
+def test_rate_invalid_year(client_authorized) :
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    ret = client_authorized.get('/login')
+    ret = client_authorized.get('/rate/1000/1')
     assert ret.status_code == 400
 
 
-def test_rate_invalid_beer(client):
+@pytest.mark.usefixtures("betamax_google")
+def test_rate_invalid_beer(client_authorized):
     with patch('juleol.db.Beers') as MockBeers:
-        ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
+        ret = client_authorized.post("/login", data={'year': '2000'})
+        ret = client_authorized.get('/login')
         MockBeers.query.filter.return_value.filter.return_value.first.return_value = None
-        ret = client.get('/rate/2000/1')
+        ret = client_authorized.get('/rate/2000/1')
         assert ret.status_code == 400
 
 
-def test_get_rate_beer(client):
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
+@pytest.mark.usefixtures("betamax_google")
+def test_get_rate_beer(client_authorized):
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    ret = client_authorized.get('/login')
     with patch('juleol.db.Beers') as MockBeers:  # noqa: F841
         with patch('juleol.db.ScoreTaste') as MockScoreTaste:  # noqa: F841
             with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:  # noqa: F841
@@ -215,7 +215,7 @@ def test_get_rate_beer(client):
                             db.ScoreLook.query.filter.return_value.filter.return_value.first.return_value = test_score
                             db.ScoreSmell.query.filter.return_value.filter.return_value.first.return_value = test_score
                             db.ScoreXmas.query.filter.return_value.filter.return_value.first.return_value = test_score
-                            ret = client.get('/rate/2000/1')
+                            ret = client_authorized.get('/rate/2000/1')
                             assert ret.status_code == 200
                             data = json.loads(ret.data)
                             assert data['taste'] == 10
@@ -225,8 +225,10 @@ def test_get_rate_beer(client):
                             assert data['xmas'] == 10
 
 
-def test_put_rate_beer(client):
-    ret = client.post("/login", data={'name': 'test', 'password': 'test', 'year': '2000'})
+@pytest.mark.usefixtures("betamax_google")
+def test_put_rate_beer(client_authorized):
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    ret = client_authorized.get('/login')
     with patch('juleol.db.Beers') as MockBeers:  # noqa: F841
         with patch('juleol.db.ScoreTaste') as MockScoreTaste:  # noqa: F841
             with patch('juleol.db.ScoreAftertaste') as MockScoreAfterTaste:  # noqa: F841
@@ -245,26 +247,26 @@ def test_put_rate_beer(client):
                             db.ScoreSmell.query.filter.return_value.filter.return_value.first.return_value = test_score
                             db.ScoreXmas.query.filter.return_value.filter.return_value.first.return_value = test_score
 
-                            ret = client.put('/rate/2000/1', data={'look': 'bogus'})
+                            ret = client_authorized.put('/rate/2000/1', data={'look': 'bogus'})
                             assert ret.status_code == 400
                             assert b'Not a valid integer value' in ret.data
-                            ret = client.put('/rate/2000/1', data={'smell': 10})
+                            ret = client_authorized.put('/rate/2000/1', data={'smell': 10})
                             assert ret.status_code == 400
                             assert b'Number must be between' in ret.data
 
                             with patch('juleol.db.db.session') as SessionMock:
-                                ret = client.put('/rate/2000/1', data={'taste': 1})
+                                ret = client_authorized.put('/rate/2000/1', data={'taste': 1})
                                 assert test_score.score == 1
-                                ret = client.put('/rate/2000/1', data={'aftertaste': 3})
+                                ret = client_authorized.put('/rate/2000/1', data={'aftertaste': 3})
                                 assert test_score.score == 3
-                                ret = client.put('/rate/2000/1', data={'smell': 2})
+                                ret = client_authorized.put('/rate/2000/1', data={'smell': 2})
                                 assert test_score.score == 2
-                                ret = client.put('/rate/2000/1', data={'look': 1})
+                                ret = client_authorized.put('/rate/2000/1', data={'look': 1})
                                 assert test_score.score == 1
-                                ret = client.put('/rate/2000/1', data={'xmas': 2})
+                                ret = client_authorized.put('/rate/2000/1', data={'xmas': 2})
                                 assert test_score.score == 2
 
                                 SessionMock.commit.side_effect = exc.SQLAlchemyError()
-                                ret = client.put('/rate/2000/1', data={'xmas': 2})
+                                ret = client_authorized.put('/rate/2000/1', data={'xmas': 2})
                                 assert ret.status_code == 500
                                 assert b'Error updating scores' in ret.data

@@ -216,9 +216,9 @@
     <form action="/admin/{{ tasting.year }}/participant/{{ participant.id }}" method="post">
       <h4 class="text-primary">{{ participant.name }}</h4>
       <div class="input-group m-3">
-        <label class="mr-2" for="participant_{{ participant.id }}">New password</label>
-        <input id="participant_{{ participant.id }}" type="password" name="password"/>
-        <button class="btn btn-primary" type=submit value="Change password">Change password</button>
+        <label class="mr-2" for="participant_{{ participant.id }}">New email</label>
+        <input id="participant_{{ participant.id }}" type="email" name="email"/>
+        <button class="btn btn-primary" type=submit value="Change email">Change email</button>
       </div>
     </form>
   </li>
@@ -228,7 +228,7 @@
 <h2 class="m-2 text-light">New participant</h2>
 <form action="/admin/{{ tasting.year }}/participant" method="post">
   {{ render_field(participant_form.name) }}
-  {{ render_field(participant_form.password) }}
+  {{ render_field(participant_form.email) }}
   <div class="input-group input-group-sm m-3">
     <button class="btn btn-primary" type=submit value="Create">Create</button>
   </div>

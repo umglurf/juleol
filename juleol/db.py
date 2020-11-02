@@ -4,12 +4,6 @@ from sqlalchemy.sql.expression import union_all
 db = SQLAlchemy()
 
 
-class Admins(db.Model):
-    id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
-    name = db.Column(db.String(255), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
-
-
 class Tastings(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     year = db.Column(db.Integer, nullable=False, unique=True)
@@ -59,7 +53,7 @@ class Heats(db.Model):
 class Participants(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
-    password = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
     tasting_id = db.Column(db.Integer, db.ForeignKey('tastings.id'), nullable=False)
     tasting = db.relationship('Tastings', back_populates='participants')
     score_tastes = db.relationship('ScoreTaste', back_populates='participant')

@@ -1,14 +1,12 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, current_app
-from flask_bcrypt import Bcrypt
 from functools import wraps
 from juleol import db
 from sqlalchemy import exc
-from wtforms import Form, IntegerField, validators, PasswordField, StringField
+from wtforms import Form, IntegerField, validators, StringField
+from wtforms.fields.html5 import EmailField
 from wtforms.widgets.html5 import NumberInput
 
 bp = Blueprint('admin', __name__)
-
-bcrypt = Bcrypt()
 
 
 class TastingForm(Form):
@@ -26,11 +24,11 @@ class TastingForm(Form):
 
 class ParticipantForm(Form):
     name = StringField("Name", [validators.input_required(), validators.Length(1, 255)])
-    password = PasswordField("Password", [validators.input_required(), validators.Length(1, 255)])
+    email = EmailField("Email", [validators.input_required(), validators.Length(1, 255), validators.Email()])
 
 
-class ParticipantPasswordForm(Form):
-    password = PasswordField("Password", [validators.input_required(), validators.Length(1, 255)])
+class ParticipantEmailForm(Form):
+    email = EmailField("Email", [validators.input_required(), validators.Length(1, 255), validators.Email()])
 
 
 class BeerHeatForm(Form):
@@ -52,8 +50,8 @@ class HeatForm(Form):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_app.config.get('oauth').authorized:
-            return redirect(url_for(current_app.config.get('oauth_login')))
+        if not current_app.config.get('admin_oauth').authorized:
+            return redirect(url_for(current_app.config.get('admin_oauth_login')))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -111,8 +109,7 @@ def new_participant(year):
     form = ParticipantForm(request.form)
     if form.validate():
         try:
-            password = bcrypt.generate_password_hash(form.password.data)
-            participant = db.Participants(tasting=tasting, name=form.name.data, password=password)
+            participant = db.Participants(tasting=tasting, name=form.name.data, email=form.email.data)
             db.db.session.add(participant)
             for beer in tasting.beers:
                 look = db.ScoreLook(tasting=tasting, beer=beer, participant=participant)
@@ -154,18 +151,17 @@ def update_participant(year, participant_id):
         flash("Invalid participant", 'error')
         return redirect("/admin/{}".format(year))
 
-    form = ParticipantPasswordForm(request.form)
+    form = ParticipantEmailForm(request.form)
     if form.validate():
         try:
-            password = bcrypt.generate_password_hash(form.password.data)
-            participant.password = password
+            participant.email = form.email.data
             db.db.session.add(participant)
             db.db.session.commit()
-            flash("Password updated", 'error')
+            flash("Email updated", 'error')
         except exc.SQLAlchemyError as e:
             db.db.session.rollback()
-            current_app.logger.error("Error updating password: {}".format(e))
-            flash("Error updating password", 'error')
+            current_app.logger.error("Error updating email: {}".format(e))
+            flash("Error updating email", 'error')
     else:
         flash("Invalid form data", 'error')
 
