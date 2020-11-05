@@ -1,5 +1,6 @@
 import pytest
 import json
+from flask_dance.consumer.storage import MemoryStorage
 from juleol import db
 from sqlalchemy import exc
 from unittest.mock import patch, MagicMock
@@ -19,7 +20,7 @@ def test_index(client):
 def test_login_logout(client_authorized):
     ret = client_authorized.post("/login", data={'year': '2000'})
     assert ret.status_code == 302
-    assert ret.headers['Location'] == 'http://localhost/login/google'
+    assert ret.headers['Location'] == 'http://localhost/login'
 
     ret = client_authorized.get('/login')
     assert ret.status_code == 302
@@ -34,21 +35,102 @@ def test_login_logout(client_authorized):
     ret = client_authorized.get('/')
     assert b'Enter rating' not in ret.data
 
+def test_login_required(client):
+    ret = client.get("/rate/2000")
+    assert ret.status_code == 302
+    assert ret.headers['Location'] == 'http://localhost/'
+    ret = client.get("/")
+    assert b'Login required' in ret.data
 
 
 @pytest.mark.usefixtures("betamax_google")
-def test_login_fail(client_invalid_email):
-    ret = client_invalid_email.post("/login", data={'year': '2000'})
-    assert ret.status_code == 302
-    assert ret.headers['Location'] == 'http://localhost/login/google'
+def test_login_fail(app, monkeypatch):
+    client = app.test_client()
 
-    ret = client_invalid_email.get('/login')
+    with app.app_context():
+        storage = MemoryStorage()
+        monkeypatch.setattr(app.blueprints['google'], "storage", storage)
+        with patch('juleol.db.Tastings') as MockTastings:
+            test_tasting = db.Tastings()
+            test_tasting.year = 2000
+            MockTastings.query.all.return_value = [test_tasting]
+            ret = client.post("/login", data={'year': '2000'})
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/login/google'
+
+            storage.set(app.blueprints['google'], {'access_token': 'fake-token'})
+            ret = client.post("/login", data={'year': '2000'})
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/login'
+
+            ret = client.post("/login", data={'year': '2001'})
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/'
+            ret = client.get('/')
+            assert b'Invalid year' in ret.data
+
+            with patch('juleol.db.Participants') as MockParticipants:
+                MockParticipants.query.filter.return_value.filter.return_value.first.return_value = None
+                ret = client.post("/login", data={'year': '2000'})
+                assert ret.status_code == 302
+                ret = client.get("/login")
+                assert ret.status_code == 302
+                assert ret.headers['Location'] == 'http://localhost/'
+                ret = client.get("/")
+                assert b'No user with email test@example.com registered for year 2000' in ret.data
+
+
+def test_login_session_corrupted(app):
+    client = app.test_client()
+    with client.session_transaction() as session:
+        session['user_id'] = 5
+    with patch('juleol.db.Tastings') as MockTastings:
+        with patch('juleol.db.Participants') as MockParticipants:
+            test_tasting = db.Tastings()
+            test_tasting.year = 2000
+            MockTastings.query.filter.return_value.filter.return_value.first.return_value = test_tasting
+            MockParticipants.query.filter.return_value.first.return_value = None
+            ret = client.get("/rate/2000")
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/'
+            ret = client.get("/")
+            assert b'Invalid user' in ret.data
+
+
+def test_login_no_session(app):
+    client = app.test_client()
+    with patch('juleol.db.Tastings') as MockTastings:
+        test_tasting = db.Tastings()
+        test_tasting.year = 2000
+        MockTastings.query.all.return_value = [test_tasting]
+
+        ret = client.get("/login")
+        assert ret.status_code == 302
+        assert ret.headers['Location'] == 'http://localhost/'
+        ret = client.get("/")
+        assert b'No year selected' in ret.data
+
+        ret = client.post("/login", data={'year': '2000'})
+        ret = client.get("/login")
+        assert ret.status_code == 302
+        assert ret.headers['Location'] == 'http://localhost/login/google'
+
+@pytest.mark.usefixtures("betamax_google_fail")
+def test_login_logout_google_failure(client_authorized):
+    ret = client_authorized.post("/login", data={'year': '2000'})
+    assert ret.status_code == 302
+    assert ret.headers['Location'] == 'http://localhost/login'
+
+    ret = client_authorized.get('/login')
     assert ret.status_code == 302
     assert ret.headers['Location'] == 'http://localhost/'
+    ret = client_authorized.get('/')
+    assert b'Error getting userdata from google' in ret.data
 
-    ret = client_invalid_email.get('/')
-    assert b'No user with email test@example.com registered for year 2000' in ret.data
-    assert b'Enter rating' not in ret.data
+    ret = client_authorized.get('/logout')
+    assert ret.status_code == 302
+    ret = client_authorized.get('/')
+    assert b'Failed to log out' in ret.data
 
 
 def test_result(client):

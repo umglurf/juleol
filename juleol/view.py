@@ -45,15 +45,15 @@ class RatingForm(Form):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not 'participant_year' in session:
-            return redirect(url_for("view.index"))
-        if not current_app.config.get('user_oauth').authorized:
-            return redirect(url_for(current_app.config.get('user_oauth_login')))
         if 'user_id' in session:
             g.participant = db.Participants.query.filter(db.Participants.id == session['user_id']).first()
             if not g.participant:
-                return redirect(url_for("view.login"))
+                flash("Invalid user", "error")
+                session.pop('participant_year', None)
+                session.pop('user_id', None)
+                return redirect(url_for("view.index"))
         else:
+            flash("Login required", "error")
             return redirect(url_for("view.index"))
         return f(*args, **kwargs)
     return decorated_function
@@ -66,29 +66,35 @@ def login():
     if request.method == "POST":
         if form.validate():
             session['participant_year'] = form.year.data
-            return redirect(url_for(current_app.config.get('user_oauth_login')))
+            if current_app.config.get('user_oauth').authorized:
+                return redirect(url_for("view.login"))
+            else:
+                return redirect(url_for(current_app.config.get('user_oauth_login')))
         else:
             flash("Invalid year", 'error')
             return redirect(url_for("view.index"))
 
-    try:
-        if current_app.config.get('USER_OAUTH_PROVIDER', 'google') == 'google':
+    if not 'participant_year' in session:
+        flash("No year selected", "error")
+        return redirect(url_for("view.index"))
+    if not current_app.config.get('user_oauth').authorized:
+        return redirect(url_for(current_app.config.get('user_oauth_login')))
+    if current_app.config.get('USER_OAUTH_PROVIDER', 'google') == 'google':
+        try:
             resp = current_app.config.get('user_oauth').get("/oauth2/v1/userinfo")
             if not resp.ok:
-                return redirect(url_for(current_app.config.get('user_oauth_login')))
+                flash("Error getting userdata from google", "error")
+                return redirect(url_for("view.index"))
             email = resp.json()['email']
-            current_app.logger.error("got user email {}".format(email))
-    except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
-        return redirect(url_for(current_app.config.get('user_oauth_login')))
+        except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
+            return redirect(url_for(current_app.config.get('user_oauth_login')))
 
     tasting = db.Tastings.query.filter(db.Tastings.year == session['participant_year']).first()
-    print(tasting)
     participant = db.Participants.query.filter(
         db.Participants.tasting == tasting
         ).filter(
             db.Participants.email == email
             ).first()
-    print(participant)
     if participant:
         session['user_id'] = participant.id
         flash("Login successfull")
@@ -99,25 +105,29 @@ def login():
 
 @bp.route('/logout', methods=["GET"])
 def logout():
-    if current_app.config.get('USER_OAUTH_PROVIDER', 'google') == 'google':
-        token = current_app.blueprints["google"].token["access_token"]
-        session_delete_ok = False
-        try:
-            resp = current_app.config.get('user_oauth').post(
-                "https://accounts.google.com/o/oauth2/revoke",
-                params={"token": token},
-                headers={"Content-Type": "application/x-www-form-urlencoded"}
-            )
-            session_delete_ok = resp.ok
-        except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
-        # if token has expired, there is no need to revoke it
-            pass
-        if session_delete_ok:
-            flash("Logout successfull")
-            session.pop('user_id', None)
-        else:
-            current_app.logger.error("Logout failure, response from google: {}".format(resp.text))
-            flash("Failed to log out", "error")
+    session_delete_ok = True
+    if current_app.config.get('user_oauth').authorized:
+        if current_app.config.get('USER_OAUTH_PROVIDER', 'google') == 'google':
+            token = current_app.blueprints["google"].token["access_token"]
+            try:
+                resp = current_app.config.get('user_oauth').post(
+                    "https://accounts.google.com/o/oauth2/revoke",
+                    params={"token": token},
+                    headers={"Content-Type": "application/x-www-form-urlencoded"}
+                )
+                session_delete_ok = resp.ok
+                if not resp.ok:
+                    current_app.logger.error("Logout failure, response from google: {}".format(resp.text))
+            except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
+            # if token has expired, there is no need to revoke it
+                pass
+
+    if session_delete_ok:
+        flash("Logout successfull")
+        session.pop('participant_year', None)
+        session.pop('user_id', None)
+    else:
+        flash("Failed to log out", "error")
 
     return redirect(url_for('view.index'))
 

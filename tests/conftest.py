@@ -42,6 +42,22 @@ def betamax_google(app, request):
 
 
 @pytest.fixture
+def betamax_google_fail(app, request):
+    @app.before_request
+    def wrap_google_with_betamax():
+        recorder = Betamax(app.config['user_oauth'])
+        # add record='all' to record new session
+        recorder.use_cassette("client_authorized_fail")
+        recorder.start()
+
+        @app.after_request
+        def unwrap(response):
+            recorder.stop()
+            return response
+    return app
+
+
+@pytest.fixture
 def client(app):
     client = app.test_client()
 
