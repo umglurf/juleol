@@ -33,6 +33,7 @@ def test_login_logout(client_authorized):
     ret = client_authorized.get('/logout')
     assert ret.status_code == 302
     ret = client_authorized.get('/')
+    assert b'Logout successfull' in ret.data
     assert b'Enter rating' not in ret.data
 
 def test_login_required(client):

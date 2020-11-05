@@ -137,9 +137,10 @@ def index():
     form = LoginForm(request.form)
     form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
     tastings = db.Tastings.query.all()
+    participant = None
     if 'user_id' in session:
-        g.participant = db.Participants.query.filter(db.Participants.id == session['user_id']).first()
-    return render_template('index.html', tastings=tastings, form=form)
+        participant = db.Participants.query.filter(db.Participants.id == session['user_id']).first()
+    return render_template('index.html', tastings=tastings, participant=participant, form=form)
 
 
 @bp.route('/result/<int:year>')
