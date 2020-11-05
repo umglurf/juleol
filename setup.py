@@ -14,6 +14,7 @@ setup(
         'flask_sqlalchemy',
         'PyMySQL',
         'wtforms[email]',
+        'SQLAlchemy~=1.3.20',
     ],
     setup_requires=["pytest-runner"],
     tests_require=[
