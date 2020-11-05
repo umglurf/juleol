@@ -28,7 +28,7 @@
    <h3 class="m-2 text-light">{{ tasting.year }}</h3>
    <div class="list-group m-3">
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/result/{{ tasting.year }}">Results</a>
-    {% if 'user_id' in session %}
+    {% if 'participant' in g and g.participant.tasting.year == tasting.year %}
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/rate/{{ tasting.year }}">Enter rating</a>
     {% else %}
     {% endif %}
