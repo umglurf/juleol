@@ -14,7 +14,7 @@ The admin interface is set up to authenticate against GitHub with oauth.
 To create a new app, go to (https://github.com/settings/applications/new)
 Set the following settings:
  * Homepage URL, the URL of the juleøl app. For development, use ```https://localhost:5000```
- * Autherization callback URL, ```Homepage_URL/admin/login/github/authorize```
+ * Authorization callback URL, ```Homepage_URL/admin/login/github/authorize```
 Then set the environment variables
  * '''GITHUB_OAUTH_CLIENT_ID```
  * '''GITHUB_OAUTH_CLIENT_SECRET```
@@ -33,6 +33,19 @@ Then set  the following environment variables
 
 To use [one of the build in oauth2 providers](https://flask-dance.readthedocs.io/en/latest/providers.html)
 , modify ```__init__.py``` and add it there.
+
+## User authentication
+
+User authentication is set up to log in using oauth. Per now, only
+google oauth authentication is supported.
+You will need to [set up client credentials](https://support.google.com/cloud/answer/6158849?hl=en)
+The type is Web Application. In authorized redirect URIs, use
+```https://localhost:5000/login/google/authorized``` and for production use
+```Homepage_URL/login/google/authorized```
+Then set the environment variables
+ * ```GOOGLE_OAUTH_CLIENT_ID```
+ * ```GOOGLE_OAUTH_CLIENT_SECRET```
+
 
 ## Database configuration
 
@@ -53,8 +66,10 @@ image, the following environment variables are supported
    [flask sqlalchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/config/?highlight=sqlalchemy_database_uri)
    for more information about the format
    * ```GITHUB_OAUTH_CLIENT_ID``` and ```GITHUB_OAUTH_CLIENT_SECRET```, the
-     oauth credentials to use againts GitHub for admin auth
+     oauth credentials to use with GitHub for admin auth
    * to use generic oauth2, set the environment variables as described above
+   * ```GOOGLE_OAUTH_CLIENT_ID``` and ```GOOGLE_OAUTH_CLIENT_SECRET```, the
+     oauth credentials to use with Google for user auth
 
 ## Developing
 
@@ -99,6 +114,8 @@ then add
 ```
 echo 'GITHUB_OAUTH_CLIENT_ID="XX"' >> $cfgfile
 echo 'GITHUB_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
+echo 'GOOGLE_OAUTH_CLIENT_ID="XX"' >> $cfgfile
+echo 'GOOGLE_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
 ```
 And change flask start to
 ```
