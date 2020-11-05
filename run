@@ -33,7 +33,7 @@ then
   fi
   if [ -n "$OAUTH_AUTHORIZATION_URL" -a -n "$OAUTH_TOKEN_URL" -a -n "$OAUTH_CLIENT_ID" -a -n "$OAUTH_CLIENT_SECRET" ]
   then
-    echo 'OAUTH_PROVIDER="oauth-generic"' >> "$config"
+    echo 'ADMIN_OAUTH_PROVIDER="oauth-generic"' >> "$config"
     echo "OAUTH_AUTHORIZATION_URL=\"$OAUTH_AUTHORIZATION_URL\"" >> "$config"
     echo "OAUTH_TOKEN_URL=\"$OAUTH_TOKEN_URL\"" >> "$config"
     echo "OAUTH_CLIENT_ID=\"$OAUTH_CLIENT_ID\"" >> "$config"
