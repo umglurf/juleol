@@ -95,6 +95,12 @@ def test_create_participant(admin_client):
         ret = admin_client.get('/admin/2000')
         assert b'Invalid form data' in ret.data
 
+        ret = admin_client.post('/admin/2000/participant', data={'name': 'test', 'email': 'email-invalid'})
+        assert ret.status_code == 302
+        assert ret.headers['Location'] == 'http://localhost/admin/2000'
+        ret = admin_client.get('/admin/2000')
+        assert b'Invalid form data' in ret.data
+
         with patch('juleol.db.Beers') as BeersMock:  # noqa: F841
             with patch('juleol.db.Participants') as ParticpantsMock:
                 with patch('juleol.db.ScoreTaste') as MockScoreTaste:
@@ -103,18 +109,15 @@ def test_create_participant(admin_client):
                             with patch('juleol.db.ScoreSmell') as MockScoreSmell:
                                 with patch('juleol.db.ScoreXmas') as MockScoreXmas:
                                     with patch('juleol.db.db.session') as SessionMock:
-                                        from flask_bcrypt import Bcrypt
-                                        bcrypt = Bcrypt()
-
                                         ret = admin_client.post(
                                             '/admin/2000/participant',
-                                            data={'name': 'test', 'password': 'test'}
+                                            data={'name': 'test', 'email': 'test@example.com'}
                                             )
                                         assert ret.status_code == 302
                                         assert ret.headers['Location'] == 'http://localhost/admin/2000'
                                         assert ParticpantsMock.mock_calls[0][2]['tasting'] == test_tasting
                                         assert ParticpantsMock.mock_calls[0][2]['name'] == 'test'
-                                        assert bcrypt.check_password_hash(ParticpantsMock.mock_calls[0][2]['password'], 'test')
+                                        assert ParticpantsMock.mock_calls[0][2]['email'] == 'test@example.com'
 
                                         assert MockScoreLook.mock_calls[0][2]['tasting'] == test_tasting
                                         assert MockScoreLook.mock_calls[0][2]['beer'] == test_beer
@@ -133,14 +136,14 @@ def test_create_participant(admin_client):
 
                                         assert SessionMock.mock_calls[0][0] == 'add'
                                         assert SessionMock.mock_calls[0][1] == (
-                                            db.Participants(name='test', password='test', tasting=test_tasting),
+                                            db.Participants(name='test', email='test@example.com', tasting=test_tasting),
                                             )
                                         assert SessionMock.mock_calls[1][0] == 'add'
                                         assert SessionMock.mock_calls[1][1] == (
                                             db.ScoreLook(
                                                 tasting=test_tasting,
                                                 beer=test_beer,
-                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                participant=db.Participants(name='test', email='test@example.com', tasting=test_tasting)
                                                 ),
                                             )
                                         assert SessionMock.mock_calls[2][0] == 'add'
@@ -148,7 +151,7 @@ def test_create_participant(admin_client):
                                             db.ScoreSmell(
                                                 tasting=test_tasting,
                                                 beer=test_beer,
-                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                participant=db.Participants(name='test', email='test@example.com', tasting=test_tasting)
                                                 ),
                                             )
                                         assert SessionMock.mock_calls[3][0] == 'add'
@@ -156,7 +159,7 @@ def test_create_participant(admin_client):
                                             db.ScoreTaste(
                                                 tasting=test_tasting,
                                                 beer=test_beer,
-                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                participant=db.Participants(name='test', email='test@example.com', tasting=test_tasting)
                                                 ),
                                             )
                                         assert SessionMock.mock_calls[4][0] == 'add'
@@ -164,7 +167,7 @@ def test_create_participant(admin_client):
                                             db.ScoreAftertaste(
                                                 tasting=test_tasting,
                                                 beer=test_beer,
-                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                participant=db.Participants(name='test', email='test@example.com', tasting=test_tasting)
                                                 ),
                                             )
                                         assert SessionMock.mock_calls[5][0] == 'add'
@@ -172,7 +175,7 @@ def test_create_participant(admin_client):
                                             db.ScoreXmas(
                                                 tasting=test_tasting,
                                                 beer=test_beer,
-                                                participant=db.Participants(name='test', password='test', tasting=test_tasting)
+                                                participant=db.Participants(name='test', email='test@example.com', tasting=test_tasting)
                                                 ),
                                             )
                                         assert SessionMock.mock_calls[6][0] == 'commit'
@@ -181,7 +184,7 @@ def test_create_participant(admin_client):
                                         SessionMock.commit.side_effect = exc.SQLAlchemyError()
                                         ret = admin_client.post(
                                             '/admin/2000/participant',
-                                            data={'name': 'test', 'password': 'test'}
+                                            data={'name': 'test', 'email': 'test@example.com'}
                                             )
                                         assert ret.status_code == 302
                                         assert ret.headers['Location'] == 'http://localhost/admin/2000'
@@ -219,24 +222,28 @@ def test_update_participant(admin_client):
             ret = admin_client.get('/admin/2000')
             assert b'Invalid form data' in ret.data
 
+            ret = admin_client.post('/admin/2000/participant/1', data={'email': 'email-invalid'})
+            assert ret.status_code == 302
+            assert ret.headers['Location'] == 'http://localhost/admin/2000'
+            ret = admin_client.get('/admin/2000')
+            assert b'Invalid form data' in ret.data
+
             with patch('juleol.db.db.session') as SessionMock:
-                ret = admin_client.post('/admin/2000/participant/1', data={'password': 'test'})
+                ret = admin_client.post('/admin/2000/participant/1', data={'email': 'test-update@example.com'})
                 assert ret.status_code == 302
                 assert ret.headers['Location'] == 'http://localhost/admin/2000'
-                from flask_bcrypt import Bcrypt
-                bcrypt = Bcrypt()
-                assert bcrypt.check_password_hash(test_participant.password, 'test')
+                assert test_participant.email == 'test-update@example.com'
                 assert SessionMock.mock_calls[0][0] == 'add'
                 assert SessionMock.mock_calls[0][1] == (test_participant, )
                 assert SessionMock.mock_calls[1][0] == 'commit'
 
                 SessionMock.reset_mock()
                 SessionMock.commit.side_effect = exc.SQLAlchemyError()
-                ret = admin_client.post('/admin/2000/participant/1', data={'password': 'test'})
+                ret = admin_client.post('/admin/2000/participant/1', data={'email': 'test@example.com'})
                 assert ret.status_code == 302
                 assert ret.headers['Location'] == 'http://localhost/admin/2000'
                 ret = admin_client.get('/admin/2000')
-                assert b'Error updating password' in ret.data
+                assert b'Error updating email' in ret.data
                 assert SessionMock.mock_calls[2][0] == 'rollback'
 
 

@@ -16,8 +16,6 @@
   {% else %}
   <form class="form-inline" method="post" action="/login">
       {{ form.year.label(class="mr-sm2") }}{{ form.year(class="form-control mr-sm2") | safe }}
-      {{ form.name(class="form-control mr-sm2", placeholder="name") | safe }}
-      {{ form.password(class="form-control mr-sm2", placeholder="password") | safe }}
       <button class="btn btn-outline-success btn-primary text-light" type="submit">Login</button>
   </form>
   {% endif %}
@@ -30,7 +28,7 @@
    <h3 class="m-2 text-light">{{ tasting.year }}</h3>
    <div class="list-group m-3">
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/result/{{ tasting.year }}">Results</a>
-    {% if 'user_id' in session %}
+    {% if participant is not none and participant.tasting.year == tasting.year %}
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/rate/{{ tasting.year }}">Enter rating</a>
     {% else %}
     {% endif %}
