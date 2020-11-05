@@ -26,6 +26,11 @@ then
     echo "GITHUB_OAUTH_CLIENT_ID=\"$GITHUB_OAUTH_CLIENT_ID\"" >> "$config"
     echo "GITHUB_OAUTH_CLIENT_SECRET=\"$GITHUB_OAUTH_CLIENT_SECRET\"" >> "$config"
   fi
+  if [ -n "$GOOGLE_OAUTH_CLIENT_ID" -a -n "$GOOGLE_OAUTH_CLIENT_SECRET" ]
+  then
+    echo "GOOGLE_OAUTH_CLIENT_ID=\"$GOOGLE_OAUTH_CLIENT_ID\"" >> "$config"
+    echo "GOOGLE_OAUTH_CLIENT_SECRET=\"$GOOGLE_OAUTH_CLIENT_SECRET\"" >> "$config"
+  fi
   if [ -n "$OAUTH_AUTHORIZATION_URL" -a -n "$OAUTH_TOKEN_URL" -a -n "$OAUTH_CLIENT_ID" -a -n "$OAUTH_CLIENT_SECRET" ]
   then
     echo 'OAUTH_PROVIDER="oauth-generic"' >> "$config"
