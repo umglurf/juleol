@@ -243,15 +243,17 @@
     });
   };
 
+  /*
   $("h1").touchwipe({
     wipeLeft: function() { next_beer();},
     wipeRight: function() { prev_beer(); },
-    //wipeUp: function() { },
-    //wipeDown: function() { },
+    wipeUp: function() { },
+    wipeDown: function() { },
     min_move_x: 20,
     min_move_y: 20,
     preventDefaultEvents: true
   });
+  */
 
   $(document).ready(function() {
     get_beer_rating(beers[current_beer_pos]);
