@@ -110,6 +110,9 @@
   $('input').on('change', function() {
     submit_beer_score($(this).prop('id'));
   });
+  $('input').on('input', function() {
+    submit_beer_score($(this).prop('id'));
+  });
 
   function prev_beer() {
     if(current_beer_pos == 0) {
