@@ -118,6 +118,8 @@ def logout():
                 session_delete_ok = resp.ok
                 if not resp.ok:
                     current_app.logger.error("Logout failure, response from google: {}".format(resp.text))
+                else:
+                    del current_app.blueprints["google"].token
             except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
             # if token has expired, there is no need to revoke it
                 pass
