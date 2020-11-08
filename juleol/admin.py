@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from functools import wraps
 from juleol import db
 from sqlalchemy import exc
-from wtforms import Form, IntegerField, validators, StringField
+from wtforms import Form, BooleanField, IntegerField, validators, StringField
 from wtforms.fields.html5 import EmailField
 from wtforms.widgets.html5 import NumberInput
 
@@ -20,6 +20,10 @@ class TastingForm(Form):
         [validators.input_required(), validators.NumberRange(1, 100)],
         widget=NumberInput(min=1, max=100)
         )
+
+
+class LockedForm(Form):
+    locked = BooleanField("Locked", [validators.input_required(), validators.AnyOf([True, False])])
 
 
 class ParticipantForm(Form):
@@ -96,6 +100,34 @@ def admin_year(year):
         note_form=note_form,
         heat_form=heat_form
         )
+
+
+@bp.route('/admin/tasting/<int:year>', methods=["PUT"])
+@login_required
+def update_tasting(year):
+    tasting = db.Tastings.query.filter(db.Tastings.year == year).first()
+    if not tasting:
+        response = jsonify(error="Invalid year")
+        response.status_code = 404
+        return response
+
+    locked_form = LockedForm(request.form)
+    if locked_form.validate():
+        try:
+            tasting.locked = locked_form.locked.data
+            db.db.session.add(tasting)
+            db.db.session.commit()
+            return jsonify(message="Locked status updated")
+        except exc.SQLAlchemyError as e:
+            db.db.session.rollback()
+            current_app.logger.error("Error updating tasting: {}".format(e))
+            response = jsonify(error="Error updating tasting")
+            response.status_code = 500
+            return response
+    else:
+        response = jsonify(error="Invalid arguments")
+        response.status_code = 400
+        return response
 
 
 @bp.route('/admin/<int:year>/participant', methods=["POST"])
