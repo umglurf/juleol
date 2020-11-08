@@ -71,6 +71,40 @@ def test_year(admin_client):
         assert b'Invalid year' in ret.data
 
 
+def test_update_tasting(admin_client):
+    with patch('juleol.db.Tastings') as TastingsMock:
+        with patch('juleol.db.db.session') as SessionMock:
+            test_tasting = db.Tastings()
+            test_tasting.year = 2000
+            test_tasting.locked = False
+            TastingsMock.query.filter.return_value.first.return_value = None
+
+            ret = admin_client.put('/admin/tasting/2001', data={"locked": "true"})
+            assert ret.status_code == 404
+            assert b'Invalid year' in ret.data
+
+            TastingsMock.query.filter.return_value.first.return_value = test_tasting
+
+            ret = admin_client.put('/admin/tasting/2000', data={"invalid": "123"})
+            assert ret.status_code == 400
+            assert b'Invalid argument' in ret.data
+
+            ret = admin_client.put('/admin/tasting/2000', data={"locked": "true"})
+            assert ret.status_code == 200
+            assert test_tasting.locked == True
+            assert SessionMock.mock_calls[0][0] == 'add'
+            assert SessionMock.mock_calls[0][1] == (test_tasting, )
+            assert SessionMock.mock_calls[1][0] == 'commit'
+
+            SessionMock.reset_mock()
+            SessionMock.commit.side_effect = exc.SQLAlchemyError()
+            ret = admin_client.put('/admin/tasting/2000', data={"locked": "true"})
+            assert ret.status_code == 500
+            assert b'Error updating tasting' in ret.data
+            assert SessionMock.mock_calls[2][0] == 'rollback'
+
+
+
 def test_create_participant(admin_client):
     with patch('juleol.db.Tastings') as TastingsMock:
         TastingsMock.query.filter.return_value.first.return_value = None

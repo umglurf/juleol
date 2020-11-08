@@ -330,6 +330,12 @@ def test_put_rate_beer(client_authorized):
                             db.ScoreSmell.query.filter.return_value.filter.return_value.first.return_value = test_score
                             db.ScoreXmas.query.filter.return_value.filter.return_value.first.return_value = test_score
 
+                            test_beer.tasting.locked = True
+                            ret = client_authorized.put('/rate/2000/1', data={'look': 10})
+                            assert ret.status_code == 403
+                            assert b'Tasting is locked' in ret.data
+                            test_beer.tasting.locked = False
+
                             ret = client_authorized.put('/rate/2000/1', data={'look': 'bogus'})
                             assert ret.status_code == 400
                             assert b'Not a valid integer value' in ret.data

@@ -7,6 +7,7 @@ db = SQLAlchemy()
 class Tastings(db.Model):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     year = db.Column(db.Integer, nullable=False, unique=True)
+    locked = db.Column(db.Boolean, nullable=False)
     beers = db.relationship('Beers', back_populates='tasting')
     heats = db.relationship('Heats', back_populates='tasting')
     participants = db.relationship('Participants', back_populates='tasting')

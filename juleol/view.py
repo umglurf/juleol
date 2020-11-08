@@ -269,6 +269,10 @@ def rate_beer(year, beer_number):
 
         return jsonify(data)
 
+    if beer.tasting.locked:
+        response = jsonify(error="Tasting is locked")
+        response.status_code = 403
+        return response
     form = RatingForm(request.form)
     if not form.validate():
         error_msg = ["{}: {}".format(k, ", ".join(v)) for k, v in form.errors.items()]

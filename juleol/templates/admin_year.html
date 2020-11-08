@@ -143,6 +143,26 @@
       }
     });
   };
+
+  function update_locked(obj) {
+    var locked = obj.checked;
+    $.ajax("/admin/tasting/" + year, {
+      method: "PUT",
+      data: { "locked": locked },
+      dataType: "json",
+      success: function(data, textStatus, xhr) {
+        $(obj).siblings("p").hide();
+      },
+      error: function(xhr, ajaxOptions, thrownError) {
+        try {
+          var msg = xhr.responseJSON.error;
+        } catch {
+          var msg = "Error updating locked status";
+        }
+        add_alert($(obj).parent(), msg);
+      }
+    });
+  };
 </script>
 
 <nav aria-label="breadcrumb bg-secondary">
@@ -154,6 +174,14 @@
 </nav>
 
 <h1 class="m-2 text-primary">Juleøl admin tasting year {{ tasting.year }}</h1>
+
+<h2 class="m-2 text-light">Lock</h2>
+<ul class="list-group m-2">
+  <li class="list-group-item list-group-item-secondary">
+    <label class="mr-2" for="locked">Tasting is locked?</label>
+    <input type="checkbox" id="locked" {% if tasting.locked %}checked{% endif %} oninput="update_locked(this)"/>
+  </li>
+</ul>
 
 <h2 class="m-2 text-light">Beers</h2>
 <ul class="list-group m-2">
