@@ -36,5 +36,5 @@ jobs:
           file: ./Dockerfile
           pull: true
           push: true
-          tags: ${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-          cache-from: type=registry,ref=${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          tags: ${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY}}/${{ env.DOCKER_REPO }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
