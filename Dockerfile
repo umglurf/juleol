@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 FROM alpine:3.12 as build
 
 WORKDIR /build

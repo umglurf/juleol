@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 class DefaultConfig:
     ADMIN_OAUTH_PROVIDER = 'github'
     USER_OAUTH_PROVIDER = 'google'

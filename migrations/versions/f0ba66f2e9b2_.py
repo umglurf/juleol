@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 """add heat
 
 Revision ID: f0ba66f2e9b2

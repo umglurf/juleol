@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 

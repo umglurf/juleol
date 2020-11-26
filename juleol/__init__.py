@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_dance.contrib.github import make_github_blueprint, github
