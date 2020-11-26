@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash, current_app
 from functools import wraps
 from juleol import db

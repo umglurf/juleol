@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2020 Håvard Moen <post@haavard.name>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
 # juleol
 
 ![python test status badge](https://github.com/umglurf/juleol/workflows/Python%20unittest/badge.svg)
