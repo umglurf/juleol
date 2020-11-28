@@ -70,7 +70,7 @@ def admin_index():
     form = TastingForm(request.form)
     if request.method == "POST" and form.validate():
         try:
-            tasting = db.Tastings(year=form.year.data)
+            tasting = db.Tastings(year=form.year.data, locked=False)
             db.db.session.add(tasting)
             for i in range(1, form.beers.data + 1):
                 new_beer = db.Beers(tasting=tasting, number=i, name="Unrevealed {}".format(i))
