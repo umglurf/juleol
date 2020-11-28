@@ -31,7 +31,7 @@ def test_add_tasting(admin_client):
             with patch('juleol.db.db.session') as SessionMock:
                 ret = admin_client.post('/admin/', data={'year': 2000, 'beers': 2})
                 assert ret.status_code == 200
-                expected = [({'year': 2000},)]
+                expected = [({'year': 2000, 'locked': False},)]
                 assert TastingsMock.call_args_list == expected
                 expected = [
                         ({'number': 1, 'name': 'Unrevealed 1', 'tasting': db.Tastings(year=2000)},),
