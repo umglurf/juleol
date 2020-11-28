@@ -37,23 +37,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 
 <h2 class="m-2 text-light" id="rating_header">Rating for beer</h2>
-<form oninput="result.value=look.value">
+<form id="look">
 {{ render_field(form.look, True, type="range", step="1") }}
 </form>
 
-<form oninput="result.value=smell.value">
+<form id="smell">
 {{ render_field(form.smell, True, type="range") }}
 </form>
 
-<form oninput="result.value=taste.value">
+<form id="taste">
 {{ render_field(form.taste, True, type="range") }}
 </form>
 
-<form oninput="result.value=aftertaste.value">
+<form id="aftertaste">
 {{ render_field(form.aftertaste, True, type="range") }}
 </form>
 
-<form oninput="result.value=xmas.value">
+<form id="xmas">
 {{ render_field(form.xmas, True, type="range") }}
 </form>
 
@@ -90,13 +90,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   {% endif %}
   var current_beer_pos = 0;
   const score_types = ["look", "smell", "taste", "aftertaste", "xmas"];
+  var updating = false;
 
   function add_alert(obj, msg) {
     $(obj).after('<div class="alert alert-danger alert-dismissible fade show" role="alert">' + msg + '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>')
   }
 
   $('#heats').on('hide.bs.collapse', function () {
-    console.log(this);
     $('h2[href="#heats"]').children('img')[0].src="/static/icons/arrow-down-circle.svg"
   })
   $('#heats').on('show.bs.collapse', function () {
@@ -114,10 +114,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
   });
 
   $('input').on('change', function() {
-    submit_beer_score($(this).prop('id'));
+    if(!updating) {
+        submit_beer_score($(this).prop('id'));
+    }
   });
   $('input').on('input', function() {
-    submit_beer_score($(this).prop('id'));
+    if(!updating) {
+        submit_beer_score($(this).prop('id'));
+    }
+  });
+
+  $("form").on('change', function() {
+      id = this.id;
+      input = $("input#" + id)[0]
+      if(input.dataset.score) {
+          $('output[for="' + id + '"]')[0].value = input.value;
+      } else {
+          $('output[for="' + id + '"]')[0].value = "Not set";
+      }
   });
 
   function prev_beer() {
@@ -172,6 +186,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     });
   }
 
+
+
   function set_beer(obj) {
     if($(obj).data('beer') !== undefined) {
       var beer = $(obj).data('beer');
@@ -198,14 +214,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
         } else {
           $("h2#rating_header").text("Rating for beer " + beer_number);
         };
+        updating = true;
         for (let key of score_types) {
           if(data[key] != null) {
             $("input#" + key)[0].value = data[key];
+            $("input#" + key)[0].dataset.score = true;
+            $('output[for="' + key + '"]')[0].value = data[key];
           } else {
             $("input#" + key)[0].value = "";
+            $("input#" + key)[0].dataset.score = false;
+            $('output[for="' + key + '"]')[0].value = "Not set";
           };
           $("input#" + key).trigger('input');
         };
+        updating = false;
       },
       error: function(xhr, ajaxOptions, thrownError) {
         try {
