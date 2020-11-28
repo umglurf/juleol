@@ -79,12 +79,9 @@ image, the following environment variables are supported
 
 ## Developing
 
-Set up a virtual env and install dependancies
+Install required dependancies
 ```
-mkdir juleol_virtualenv
-virtualenv -p /usr/bin/python3 juleol_virtualenv
-. juleol_virtualenv/bin/activate
-pip install -e .
+pipenv install --dev -e .
 ```
 
 Start the database with
@@ -92,9 +89,15 @@ Start the database with
 docker-compose up -d mysql
 ```
 
-And start the development environment with
+Initialize the database
 ```
-. $(dirname $0)/juleol_virtualenv/bin/activate
+cfgfile=$(mktemp)
+echo 'SQLALCHEMY_DATABASE_URI= "mysql+pymysql://juleol:juleol@127.0.0.1/juleol"' >> $cfgfile
+FLASK_APP=juleol JULEOL_SETTINGS="$cfgfile" flask db upgrade
+```
+
+And run the development environment with the following script
+```
 export FLASK_APP="$(dirname "$0")/juleol"
 export FLASK_ENV=development
 
@@ -105,7 +108,7 @@ echo 'SQLALCHEMY_TRACK_MODIFICATIONS = False' >> $cfgfile
 echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> $cfgfile
 export JULEOL_SETTINGS="$cfgfile"
 
-flask run -h 127.0.0.1
+pipenv run flask run -h 127.0.0.1
 
 rm -- "$cfgfile"
 ```
@@ -125,9 +128,9 @@ echo 'GOOGLE_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
 ```
 And change flask start to
 ```
-flask run -h 127.0.0.1 --cert server.crt --key server.key
+pipenv flask run -h 127.0.0.1 --cert server.crt --key server.key
 ```
 
 ### Running tests
 
-```python setup.py test```
+```pipenv python setup.py test```
