@@ -133,4 +133,4 @@ pipenv flask run -h 127.0.0.1 --cert server.crt --key server.key
 
 ### Running tests
 
-```pipenv python setup.py test```
+```pipenv run pytest```

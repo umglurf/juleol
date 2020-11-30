@@ -31,7 +31,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pipenv run python setup.py test
+        pipenv run pytest
     - uses: actions/upload-artifact@v2
       name: Upload artifiact
       with:
