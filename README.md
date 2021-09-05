@@ -93,7 +93,7 @@ Initialize the database
 ```
 cfgfile=$(mktemp)
 echo 'SQLALCHEMY_DATABASE_URI= "mysql+pymysql://juleol:juleol@127.0.0.1/juleol"' >> $cfgfile
-FLASK_APP=juleol JULEOL_SETTINGS="$cfgfile" flask db upgrade
+FLASK_APP=juleol JULEOL_SETTINGS="$cfgfile" pipenv run flask db upgrade
 ```
 
 And run the development environment with the following script
@@ -128,9 +128,9 @@ echo 'GOOGLE_OAUTH_CLIENT_SECRET="XX"' >> $cfgfile
 ```
 And change flask start to
 ```
-pipenv flask run -h 127.0.0.1 --cert server.crt --key server.key
+pipenv run flask run -h 127.0.0.1 --cert server.crt --key server.key
 ```
 
 ### Running tests
 
-```pipenv python setup.py test```
+```pipenv run python setup.py test```
