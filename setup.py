@@ -15,6 +15,7 @@ setup(
         "flask~=2.0",
         "Flask-Dance~=5.0",
         "flask_migrate",
+        "Flask-Session",
         "flask_sqlalchemy",
         "PyMySQL",
         "wtforms[email]",
