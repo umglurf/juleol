@@ -12,4 +12,5 @@ class DefaultConfig:
     SESSION_COOKIE_SECURE = True
     SESSION_TYPE = "sqlalchemy"
     SESSION_SQLALCHEMY_TABLE = "flask_session"
+    SESSION_USE_SIGNER = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
