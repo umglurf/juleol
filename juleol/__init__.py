@@ -33,6 +33,8 @@ def create_app(test_config=None):
     else:
         admin_storage = None
         user_storage = None
+        # until we can set user or user_id, this will give everyone the same
+        # token, so disable for now
         # admin_storage = SQLAlchemyStorage(db.OAuthAdmin, db.db.session)
         # user_storage = SQLAlchemyStorage(db.OAuthUser, db.db.session)
 
