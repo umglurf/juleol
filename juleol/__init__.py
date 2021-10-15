@@ -31,8 +31,10 @@ def create_app(test_config=None):
         admin_storage = MemoryStorage()
         user_storage = MemoryStorage()
     else:
-        admin_storage = SQLAlchemyStorage(db.OAuthAdmin, db.db.session)
-        user_storage = SQLAlchemyStorage(db.OAuthUser, db.db.session)
+        admin_storage = None
+        user_storage = None
+        # admin_storage = SQLAlchemyStorage(db.OAuthAdmin, db.db.session)
+        # user_storage = SQLAlchemyStorage(db.OAuthUser, db.db.session)
 
     if app.config.get("ADMIN_OAUTH_PROVIDER", "github") == "oauth-generic":
         admin_oauth_bp = oauth_generic.make_oauth_blueprint(
