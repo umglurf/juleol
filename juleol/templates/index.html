@@ -17,7 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   <ol class="mr-auto mt-2 breadcrumb">
     <li class="breadcrumb-item active">Home</li>
   </ol>
-  {% if 'user_id' in session %}
+  {% if participant.is_authenticated %}
   <a href="/logout" class="nav-link">Logout</a>
   {% else %}
   <form class="form-inline" method="post" action="/login">
@@ -34,7 +34,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
    <h3 class="m-2 text-light">{{ tasting.year }}</h3>
    <div class="list-group m-3">
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/result/{{ tasting.year }}">Results</a>
-    {% if participant is not none and participant.tasting.year == tasting.year %}
+    {% if participant.is_authenticated and participant.tasting.year == tasting.year %}
     <a class="list-group-item list-group-item-action list-group-item-secondary text-primary" href="/rate/{{ tasting.year }}">Enter rating</a>
     {% else %}
     {% endif %}

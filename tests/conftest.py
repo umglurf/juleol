@@ -3,20 +3,24 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import pytest
+
 from betamax import Betamax
+from betamax_serializers import pretty_json
 import juleol
 import juleol.db
 from flask import current_app
 from flask_dance.consumer.storage import MemoryStorage
 from flask_dance.contrib.google import google
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, Mock
 
-GOOGLE_OAUTH_TOKEN = "fake-token"
+GOOGLE_OAUTH_TOKEN = '{"access_token": "test-token"}'
 
 
+Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
 with Betamax.configure() as config:
     config.cassette_library_dir = "tests/cassettes"
     config.define_cassette_placeholder("<AUTH_TOKEN>", GOOGLE_OAUTH_TOKEN)
+    config.default_cassette_options["serialize_with"] = "prettyjson"
 
 
 class TestConfig(object):
@@ -124,6 +128,9 @@ def client_invalid_email(app):
 def client_authorized(client, monkeypatch):
     storage = MemoryStorage({"access_token": GOOGLE_OAUTH_TOKEN})
     monkeypatch.setattr(current_app.blueprints["google"], "storage", storage)
+
+    with client.session_transaction() as sess:
+        sess["_user_id"] = 1
 
     yield client
 

@@ -105,7 +105,7 @@ cfgfile=$(mktemp)
 echo 'SQLALCHEMY_DATABASE_URI= "mysql+pymysql://juleol:juleol@127.0.0.1/juleol"' >> $cfgfile
 echo 'SQLALCHEMY_ECHO = True' >> $cfgfile
 echo 'SQLALCHEMY_TRACK_MODIFICATIONS = False' >> $cfgfile
-echo "SECRET_KEY = b'$(tr -c -d [:alnum:] < /dev/urandom | dd bs=1 count=16 2>/dev/null)'" >> $cfgfile
+echo "SECRET_KEY = \"$(tr -c -d '[:alnum:]' < /dev/urandom | dd bs=1 count=16 2>/dev/null)\"" >> $cfgfile
 export JULEOL_SETTINGS="$cfgfile"
 
 pipenv run flask run -h 127.0.0.1

@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 {% from "_formhelper.html" import render_field %}
 {% extends 'base.html' %}
 
-{% block title %}Juleøl rate beer year {{ g.participant.tasting.year }}{% endblock %}
+{% block title %}Juleøl rate beer year {{ current_user.tasting.year }}{% endblock %}
 {%block content %}
 <nav class="navbar navbar-expand-{%- if 'user_id' in session %}sm{%- else %}md{%- endif %} navbar-light bg-light">
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -16,19 +16,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ol class="m-2 breadcrumb">
       <li class="breadcrumb-item"><a href="/">Home</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Rate {{ g.participant.tasting.year }}</li>
+      <li class="breadcrumb-item active" aria-current="page">Rate {{ current_user.tasting.year }}</li>
     </ol>
-    <a class="nav-item" href="/result/{{ g.participant.tasting.year }}">Results</a>
+    <a class="nav-item" href="/result/{{ current_user.tasting.year }}">Results</a>
   </div>
 </nav>
-<h1 class="m-2 text-primary">Juleøl rate beer year {{ g.participant.tasting.year }}</h1>
+<h1 class="m-2 text-primary">Juleøl rate beer year {{ current_user.tasting.year }}</h1>
 
-{% if g.participant.tasting.heats %}
+{% if current_user.tasting.heats %}
 <h2 data-toggle="collapse" href="#heats" class="m-2 text-light"> <img alt="open or close section" src="/static/icons/arrow-down-circle.svg"/>Heats</h2>
 <div class="collapse m-2" id="heats">
 <select class="custom-select" id="heatselect" name="heat" onchange="filter_heat();">
   <option value="All" {% if not heat %}selected="selected"{% endif %}>All</option>
-  {% for h in g.participant.tasting.heats %}
+  {% for h in current_user.tasting.heats %}
   <option value="{{ h.id }}" {% if heat and heat == h.id %}selected="selected"{% endif %}>{{ h.name }}</option>
   {% endfor %}
 </select>
@@ -58,9 +58,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 </form>
 
 {% if heat %}
-{% set beers = g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) %}
+{% set beers = current_user.tasting.beers | selectattr("heat_id", "equalto", heat) %}
 {% else %}
-{% set beers = g.participant.tasting.beers %}
+{% set beers = current_user.tasting.beers %}
 {% endif %}
 <nav aria-label="Beer number">
   <ul class="pagination m-2">
@@ -80,12 +80,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 
 <script>
-  const year = {{ g.participant.tasting.year }};
+  const year = {{ current_user.tasting.year }};
   {% if heat %}
-  const beers = {{ g.participant.tasting.beers | selectattr("heat_id", "equalto", heat) | map(attribute='number') | list | tojson }};
+  const beers = {{ current_user.tasting.beers | selectattr("heat_id", "equalto", heat) | map(attribute='number') | list | tojson }};
   const heat = true;
   {% else %}
-  const beers = {{ g.participant.tasting.beers | map(attribute='number') | list | tojson }};
+  const beers = {{ current_user.tasting.beers | map(attribute='number') | list | tojson }};
   const heat = false;
   {% endif %}
   var current_beer_pos = 0;

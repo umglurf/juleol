@@ -4,6 +4,8 @@
 
 import pytest
 import json
+from flask import current_app
+from flask_dance.consumer import oauth_authorized
 from flask_dance.consumer.storage import MemoryStorage
 from juleol import db
 from sqlalchemy import exc
@@ -21,127 +23,54 @@ def test_index(client):
         assert b"Enter rating" not in ret.data
 
 
-@pytest.mark.usefixtures("betamax_google")
-def test_login_logout(client_authorized):
-    ret = client_authorized.post("/login", data={"year": "2000"})
+def test_login(client):
+    ret = client.post("/login", data={"year": "2000"})
     assert ret.status_code == 302
-    assert ret.headers["Location"] == "https://localhost/login"
+    assert ret.headers["Location"] == "https://localhost/login/google"
 
-    ret = client_authorized.get("/login")
+
+def test_login_wrong_year(client):
+    ret = client.post("/login", data={"year": "1000"})
+    assert ret.status_code == 302
+    assert ret.headers["Location"] == "https://localhost/"
+
+    ret = client.get("/")
+    assert ret.status_code == 200
+    assert b"Invalid year" in ret.data
+
+
+@pytest.mark.usefixtures("betamax_google")
+def test_logout(client_authorized):
+
+    ret = client_authorized.get("/logout")
     assert ret.status_code == 302
     assert ret.headers["Location"] == "https://localhost/"
 
     ret = client_authorized.get("/")
-    assert b"Login successfull" in ret.data
-    assert b"Enter rating" in ret.data
-
-    ret = client_authorized.get("/logout")
-    assert ret.status_code == 302
-    ret = client_authorized.get("/")
+    assert ret.status_code == 200
     assert b"Logout successfull" in ret.data
-    assert b"Enter rating" not in ret.data
+
+
+def test_logout_no_oauth(client):
+    ret = client.get("/logout")
+    assert ret.status_code == 302
+    assert ret.headers["Location"] == "https://localhost/"
+
+    ret = client.get("/")
+    assert ret.status_code == 200
+    assert b"Logout successfull" in ret.data
 
 
 def test_login_required(client):
     ret = client.get("/rate/2000")
     assert ret.status_code == 302
-    assert ret.headers["Location"] == "https://localhost/"
+    assert ret.headers["Location"] == "https://localhost/?next=%2Frate%2F2000"
     ret = client.get("/")
     assert b"Login required" in ret.data
 
 
-@pytest.mark.usefixtures("betamax_google")
-def test_login_fail(app, monkeypatch):
-    client = app.test_client()
-
-    with app.app_context():
-        storage = MemoryStorage()
-        monkeypatch.setattr(app.blueprints["google"], "storage", storage)
-        with patch("juleol.db.Tastings") as MockTastings:
-            test_tasting = db.Tastings()
-            test_tasting.year = 2000
-            MockTastings.query.all.return_value = [test_tasting]
-            ret = client.post("/login", data={"year": "2000"})
-            assert ret.status_code == 302
-            assert ret.headers["Location"] == "https://localhost/login/google"
-
-            storage.set(app.blueprints["google"], {"access_token": "fake-token"})
-            ret = client.post("/login", data={"year": "2000"})
-            assert ret.status_code == 302
-            assert ret.headers["Location"] == "https://localhost/login"
-
-            ret = client.post("/login", data={"year": "2001"})
-            assert ret.status_code == 302
-            assert ret.headers["Location"] == "https://localhost/"
-            ret = client.get("/")
-            assert b"Invalid year" in ret.data
-
-            with patch("juleol.db.Participants") as MockParticipants:
-                MockParticipants.query.filter.return_value.filter.return_value.first.return_value = (
-                    None
-                )
-                ret = client.post("/login", data={"year": "2000"})
-                assert ret.status_code == 302
-                ret = client.get("/login")
-                assert ret.status_code == 302
-                assert ret.headers["Location"] == "https://localhost/"
-                ret = client.get("/")
-                assert (
-                    b"No user with email test@example.com registered for year 2000"
-                    in ret.data
-                )
-
-
-def test_login_session_corrupted(app):
-    client = app.test_client()
-    with client.session_transaction() as session:
-        session["user_id"] = 5
-    with patch("juleol.db.Tastings") as MockTastings:
-        with patch("juleol.db.Participants") as MockParticipants:
-            test_tasting = db.Tastings()
-            test_tasting.year = 2000
-            MockTastings.query.filter.return_value.filter.return_value.first.return_value = (
-                test_tasting
-            )
-            MockParticipants.query.filter.return_value.first.return_value = None
-            ret = client.get("/rate/2000")
-            assert ret.status_code == 302
-            assert ret.headers["Location"] == "https://localhost/"
-            ret = client.get("/")
-            assert b"Invalid user" in ret.data
-
-
-def test_login_no_session(app):
-    client = app.test_client()
-    with patch("juleol.db.Tastings") as MockTastings:
-        test_tasting = db.Tastings()
-        test_tasting.year = 2000
-        MockTastings.query.all.return_value = [test_tasting]
-
-        ret = client.get("/login")
-        assert ret.status_code == 302
-        assert ret.headers["Location"] == "https://localhost/"
-        ret = client.get("/")
-        assert b"No year selected" in ret.data
-
-        ret = client.post("/login", data={"year": "2000"})
-        ret = client.get("/login")
-        assert ret.status_code == 302
-        assert ret.headers["Location"] == "https://localhost/login/google"
-
-
 @pytest.mark.usefixtures("betamax_google_fail")
 def test_login_logout_google_failure(client_authorized):
-    ret = client_authorized.post("/login", data={"year": "2000"})
-    assert ret.status_code == 302
-    assert ret.headers["Location"] == "https://localhost/login"
-
-    ret = client_authorized.get("/login")
-    assert ret.status_code == 302
-    assert ret.headers["Location"] == "https://localhost/"
-    ret = client_authorized.get("/")
-    assert b"Error getting userdata from google" in ret.data
-
     ret = client_authorized.get("/logout")
     assert ret.status_code == 302
     ret = client_authorized.get("/")
@@ -254,11 +183,6 @@ def test_result_invalid_participant(client):
 @pytest.mark.usefixtures("betamax_google")
 def test_rate(client_authorized):
     ret = client_authorized.get("/rate/2000")
-    assert ret.status_code == 302
-    assert ret.headers["Location"] == "https://localhost/"
-    ret = client_authorized.post("/login", data={"year": "2000"})
-    ret = client_authorized.get("/login")
-    ret = client_authorized.get("/rate/2000")
     assert ret.status_code == 200
 
     ret = client_authorized.get("/rate/2001")
@@ -267,8 +191,6 @@ def test_rate(client_authorized):
 
 @pytest.mark.usefixtures("betamax_google")
 def test_rate_invalid_year(client_authorized):
-    ret = client_authorized.post("/login", data={"year": "2000"})
-    ret = client_authorized.get("/login")
     ret = client_authorized.get("/rate/1000/1")
     assert ret.status_code == 400
 
@@ -276,8 +198,6 @@ def test_rate_invalid_year(client_authorized):
 @pytest.mark.usefixtures("betamax_google")
 def test_rate_invalid_beer(client_authorized):
     with patch("juleol.db.Beers") as MockBeers:
-        ret = client_authorized.post("/login", data={"year": "2000"})
-        ret = client_authorized.get("/login")
         MockBeers.query.filter.return_value.filter.return_value.first.return_value = (
             None
         )
@@ -287,8 +207,6 @@ def test_rate_invalid_beer(client_authorized):
 
 @pytest.mark.usefixtures("betamax_google")
 def test_get_rate_beer(client_authorized):
-    ret = client_authorized.post("/login", data={"year": "2000"})
-    ret = client_authorized.get("/login")
     with patch("juleol.db.Beers") as MockBeers:  # noqa: F841
         with patch("juleol.db.ScoreTaste") as MockScoreTaste:  # noqa: F841
             with patch(
@@ -334,8 +252,6 @@ def test_get_rate_beer(client_authorized):
 
 @pytest.mark.usefixtures("betamax_google")
 def test_put_rate_beer(client_authorized):
-    ret = client_authorized.post("/login", data={"year": "2000"})
-    ret = client_authorized.get("/login")
     with patch("juleol.db.Beers") as MockBeers:  # noqa: F841
         with patch("juleol.db.ScoreTaste") as MockScoreTaste:  # noqa: F841
             with patch(

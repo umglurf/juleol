@@ -2,19 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from flask_login import UserMixin
 from sqlalchemy.sql.expression import union_all
 
 db = SQLAlchemy()
-
-
-class OAuthAdmin(OAuthConsumerMixin, db.Model):
-    pass
-
-
-class OAuthUser(OAuthConsumerMixin, db.Model):
-    pass
 
 
 class Tastings(db.Model):
@@ -64,7 +57,7 @@ class Heats(db.Model):
     __table_args__ = (db.UniqueConstraint("name", "tasting_id"),)
 
 
-class Participants(db.Model):
+class Participants(db.Model, UserMixin):
     id = db.Column(db.Integer, autoincrement=True, nullable=False, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
@@ -76,6 +69,9 @@ class Participants(db.Model):
     score_looks = db.relationship("ScoreLook", back_populates="participant")
     score_xmases = db.relationship("ScoreXmas", back_populates="participant")
     __table_args__ = (db.UniqueConstraint("name", "tasting_id"),)
+
+    def is_authenticated(self):
+        return current_app.config.get("user_oauth").authorized
 
 
 class ScoreTaste(db.Model):

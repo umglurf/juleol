@@ -14,6 +14,8 @@ from flask import (
     g,
     current_app,
 )
+from flask_dance.consumer import oauth_authorized
+from flask_login import current_user, login_required, login_user, logout_user
 import oauthlib.oauth2.rfc6749.errors
 from functools import wraps
 from juleol import db
@@ -23,15 +25,6 @@ from wtforms import Form, IntegerField, validators, SelectField
 from wtforms.widgets.html5 import NumberInput
 
 bp = Blueprint("view", __name__)
-
-
-def get_user():
-    print(f"Calling get_user, session user_id = {session.get('user_id')}")
-    if not "user_id" in session:
-        return None
-    return db.Participants.query.filter(
-        db.Participants.id == session["user_id"]
-    ).first()
 
 
 class LoginForm(Form):
@@ -66,55 +59,26 @@ class RatingForm(Form):
     )
 
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user_id" in session:
-            g.participant = db.Participants.query.filter(
-                db.Participants.id == session["user_id"]
-            ).first()
-            if not g.participant:
-                flash("Invalid user", "error")
-                session.pop("participant_year", None)
-                session.pop("user_id", None)
-                return redirect(url_for("view.index"))
-        else:
-            flash("Login required", "error")
-            return redirect(url_for("view.index"))
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-@bp.route("/login", methods=["GET", "POST"])
-def login():
-    form = LoginForm(request.form)
-    form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
-    if request.method == "POST":
-        if form.validate():
-            session["participant_year"] = form.year.data
-            if current_app.config.get("user_oauth").authorized:
-                return redirect(url_for("view.login"))
-            else:
-                return redirect(url_for(current_app.config.get("user_oauth_login")))
-        else:
-            flash("Invalid year", "error")
-            return redirect(url_for("view.index"))
+@oauth_authorized.connect
+def logged_in(blueprint, token):
+    if not token:
+        flash("Failed to log in", "error")
+        return False
 
     if not "participant_year" in session:
-        flash("No year selected", "error")
-        return redirect(url_for("view.index"))
-    if not current_app.config.get("user_oauth").authorized:
+        return False
+
+    blueprint.token = token
+
+    try:
+        resp = blueprint.session.get(current_app.config["user_info_path"])
+        print(resp)
+        if not resp.ok:
+            flash("Error getting userdata", "error")
+            return False
+        email = resp.json()["email"]
+    except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
         return redirect(url_for(current_app.config.get("user_oauth_login")))
-    if current_app.config.get("USER_OAUTH_PROVIDER", "google") == "google":
-        try:
-            resp = current_app.config.get("user_oauth").get("/oauth2/v1/userinfo")
-            if not resp.ok:
-                flash("Error getting userdata from google", "error")
-                return redirect(url_for("view.index"))
-            email = resp.json()["email"]
-        except oauthlib.oauth2.rfc6749.errors.TokenExpiredError:
-            return redirect(url_for(current_app.config.get("user_oauth_login")))
 
     tasting = db.Tastings.query.filter(
         db.Tastings.year == session["participant_year"]
@@ -125,9 +89,8 @@ def login():
         .first()
     )
     if participant:
-        session["user_id"] = participant.id
+        login_user(participant)
         flash("Login successfull")
-        return redirect(url_for("view.index"))
     else:
         flash(
             "No user with email {} registered for year {}".format(
@@ -135,7 +98,19 @@ def login():
             ),
             "error",
         )
+        return False
+
+
+@bp.route("/login", methods=["POST"])
+def login():
+    form = LoginForm(request.form)
+    form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
+    if not form.validate():
+        flash(f"Invalid year", "error")
         return redirect(url_for("view.index"))
+
+    session["participant_year"] = form.year.data
+    return redirect(url_for(current_app.config.get("user_oauth_login")))
 
 
 @bp.route("/logout", methods=["GET"])
@@ -164,7 +139,7 @@ def logout():
     if session_delete_ok:
         flash("Logout successfull")
         session.pop("participant_year", None)
-        session.pop("user_id", None)
+        logout_user()
     else:
         flash("Failed to log out", "error")
 
@@ -176,13 +151,8 @@ def index():
     form = LoginForm(request.form)
     form.year.choices = [(t.year, t.year) for t in db.Tastings.query.all()]
     tastings = db.Tastings.query.all()
-    participant = None
-    if "user_id" in session:
-        participant = db.Participants.query.filter(
-            db.Participants.id == session["user_id"]
-        ).first()
     return render_template(
-        "index.html", tastings=tastings, participant=participant, form=form
+        "index.html", tastings=tastings, participant=current_user, form=form
     )
 
 
@@ -258,7 +228,7 @@ def participant_result(year, participant_id):
 @bp.route("/rate/<int:year>", methods=["GET"])
 @login_required
 def rate(year):
-    if not g.participant.tasting.year == year:
+    if not current_user.tasting.year == year:
         flash("Invalid year for this user", "error")
         return redirect(url_for("view.index"))
     form = RatingForm()
@@ -273,13 +243,13 @@ def rate(year):
 @bp.route("/rate/<int:year>/<int:beer_number>", methods=["GET", "PUT"])
 @login_required
 def rate_beer(year, beer_number):
-    if not g.participant.tasting.year == year:
+    if not current_user.tasting.year == year:
         response = jsonify(error="Invalid year for this user")
         response.status_code = 400
         return response
 
     beer = (
-        db.Beers.query.filter(db.Beers.tasting == g.participant.tasting)
+        db.Beers.query.filter(db.Beers.tasting == current_user.tasting)
         .filter(db.Beers.number == beer_number)
         .first()
     )
@@ -290,29 +260,29 @@ def rate_beer(year, beer_number):
 
     if request.method == "GET":
         taste = (
-            db.ScoreTaste.query.filter(db.ScoreTaste.participant == g.participant)
+            db.ScoreTaste.query.filter(db.ScoreTaste.participant == current_user)
             .filter(db.ScoreTaste.beer == beer)
             .first()
         )
         aftertaste = (
             db.ScoreAftertaste.query.filter(
-                db.ScoreAftertaste.participant == g.participant
+                db.ScoreAftertaste.participant == current_user
             )
             .filter(db.ScoreAftertaste.beer == beer)
             .first()
         )
         look = (
-            db.ScoreLook.query.filter(db.ScoreLook.participant == g.participant)
+            db.ScoreLook.query.filter(db.ScoreLook.participant == current_user)
             .filter(db.ScoreLook.beer == beer)
             .first()
         )
         smell = (
-            db.ScoreSmell.query.filter(db.ScoreSmell.participant == g.participant)
+            db.ScoreSmell.query.filter(db.ScoreSmell.participant == current_user)
             .filter(db.ScoreSmell.beer == beer)
             .first()
         )
         xmas = (
-            db.ScoreXmas.query.filter(db.ScoreXmas.participant == g.participant)
+            db.ScoreXmas.query.filter(db.ScoreXmas.participant == current_user)
             .filter(db.ScoreXmas.beer == beer)
             .first()
         )
@@ -341,7 +311,7 @@ def rate_beer(year, beer_number):
     try:
         if form.look.data is not None:
             look = (
-                db.ScoreLook.query.filter(db.ScoreLook.participant == g.participant)
+                db.ScoreLook.query.filter(db.ScoreLook.participant == current_user)
                 .filter(db.ScoreLook.beer == beer)
                 .first()
             )
@@ -349,7 +319,7 @@ def rate_beer(year, beer_number):
             db.db.session.add(look)
         if form.smell.data is not None:
             smell = (
-                db.ScoreSmell.query.filter(db.ScoreSmell.participant == g.participant)
+                db.ScoreSmell.query.filter(db.ScoreSmell.participant == current_user)
                 .filter(db.ScoreSmell.beer == beer)
                 .first()
             )
@@ -357,7 +327,7 @@ def rate_beer(year, beer_number):
             db.db.session.add(smell)
         if form.taste.data is not None:
             taste = (
-                db.ScoreTaste.query.filter(db.ScoreTaste.participant == g.participant)
+                db.ScoreTaste.query.filter(db.ScoreTaste.participant == current_user)
                 .filter(db.ScoreTaste.beer == beer)
                 .first()
             )
@@ -366,7 +336,7 @@ def rate_beer(year, beer_number):
         if form.aftertaste.data is not None:
             aftertaste = (
                 db.ScoreAftertaste.query.filter(
-                    db.ScoreAftertaste.participant == g.participant
+                    db.ScoreAftertaste.participant == current_user
                 )
                 .filter(db.ScoreAftertaste.beer == beer)
                 .first()
@@ -375,7 +345,7 @@ def rate_beer(year, beer_number):
             db.db.session.add(aftertaste)
         if form.xmas.data is not None:
             xmas = (
-                db.ScoreXmas.query.filter(db.ScoreXmas.participant == g.participant)
+                db.ScoreXmas.query.filter(db.ScoreXmas.participant == current_user)
                 .filter(db.ScoreXmas.beer == beer)
                 .first()
             )
