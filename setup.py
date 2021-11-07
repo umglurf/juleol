@@ -17,7 +17,7 @@ setup(
         "Flask-Dance~=5.0",
         "flask_migrate",
         "flask_login",
-        "Flask-Session",
+        "Flask-Sessionstore",
         "flask_sqlalchemy",
         "PyMySQL",
         "wtforms[email]",
