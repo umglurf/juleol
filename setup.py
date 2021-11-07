@@ -10,11 +10,13 @@ setup(
     packages=["juleol"],
     include_package_data=True,
     install_requires=[
+        "blinker",
         "idna==2.7",
         "gunicorn",
         "flask~=2.0",
         "Flask-Dance~=5.0",
         "flask_migrate",
+        "flask_login",
         "Flask-Session",
         "flask_sqlalchemy",
         "PyMySQL",
@@ -24,6 +26,7 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=[
         "betamax",
+        "betamax_serializers",
         "coverage",
         "pytest",
         "pytest-cov",

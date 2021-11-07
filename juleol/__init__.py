@@ -5,6 +5,7 @@
 from flask import Flask, g
 from flask_dance.consumer.storage import MemoryStorage
 from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
+from flask_login import LoginManager
 from flask_session import Session
 from flask_migrate import Migrate, upgrade
 from flask_dance.contrib.github import make_github_blueprint, github
@@ -22,7 +23,17 @@ def create_app(test_config=None):
     if test_config:
         app.config.from_object(test_config)
 
+    login_manager = LoginManager()
+    login_manager.login_message = "Login required"
+    login_manager.login_message_category = "error"
+    login_manager.login_view = "view.index"
+    login_manager.init_app(app)
+
     from juleol import admin, db, view, oauth_generic
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.Participants.query.filter(db.Participants.id == user_id).first()
 
     app.register_blueprint(admin.bp)
     app.register_blueprint(view.bp)
@@ -56,12 +67,12 @@ def create_app(test_config=None):
 
     if app.config.get("USER_OAUTH_PROVIDER", "google") == "google":
         user_oauth_bp = make_google_blueprint(
-            redirect_to="view.login",
             storage=user_storage,
             scope="openid https://www.googleapis.com/auth/userinfo.email",
         )
         app.config["user_oauth"] = google
         app.config["user_oauth_login"] = "google.login"
+        app.config["user_info_path"] = "/oauth2/v1/userinfo"
     else:
         raise Exception("Unknown user oauth provider configured")
     app.register_blueprint(user_oauth_bp, url_prefix="/login")
