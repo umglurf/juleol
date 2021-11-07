@@ -4,19 +4,10 @@
 
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
 from flask_login import UserMixin
 from sqlalchemy.sql.expression import union_all
 
 db = SQLAlchemy()
-
-
-class OAuthAdmin(OAuthConsumerMixin, db.Model):
-    pass
-
-
-class OAuthUser(OAuthConsumerMixin, db.Model):
-    pass
 
 
 class Tastings(db.Model):

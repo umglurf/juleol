@@ -28,31 +28,7 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("session_id"),
     )
-    op.create_table(
-        "flask_dance_oauthadmin",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("provider", sa.String(50), nullable=False),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False
-        ),
-        sa.Column("provider", sa.String(50), nullable=False),
-        sa.Column("token", MutableDict.as_mutable(sa.JSON), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_table(
-        "flask_dance_oauthuser",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("provider", sa.String(50), nullable=False),
-        sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False
-        ),
-        sa.Column("provider", sa.String(50), nullable=False),
-        sa.Column("token", MutableDict.as_mutable(sa.JSON), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-    )
 
 
 def downgrade():
     op.drop_table("flask_session")
-    op.drop_table("flask_dance_oauthadmin")
-    op.drop_table("flask_dance_oauthuser")

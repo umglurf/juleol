@@ -4,7 +4,6 @@
 
 from flask import Flask, g
 from flask_dance.consumer.storage import MemoryStorage
-from flask_dance.consumer.storage.sqla import SQLAlchemyStorage
 from flask_login import LoginManager
 from flask_session import Session
 from flask_migrate import Migrate, upgrade
@@ -44,10 +43,6 @@ def create_app(test_config=None):
     else:
         admin_storage = None
         user_storage = None
-        # until we can set user or user_id, this will give everyone the same
-        # token, so disable for now
-        # admin_storage = SQLAlchemyStorage(db.OAuthAdmin, db.db.session)
-        # user_storage = SQLAlchemyStorage(db.OAuthUser, db.db.session)
 
     if app.config.get("ADMIN_OAUTH_PROVIDER", "github") == "oauth-generic":
         admin_oauth_bp = oauth_generic.make_oauth_blueprint(
