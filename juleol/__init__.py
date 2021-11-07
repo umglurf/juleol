@@ -48,12 +48,14 @@ def create_app(test_config=None):
         admin_oauth_bp = oauth_generic.make_oauth_blueprint(
             redirect_to="admin.admin_index", storage=admin_storage
         )
+        app.config["admin_bp"] = admin_oauth_bp
         app.config["admin_oauth"] = juleol.oauth_generic.oauth
         app.config["admin_oauth_login"] = "oauth_generic.login"
     elif app.config.get("ADMIN_OAUTH_PROVIDER", "github") == "github":
         admin_oauth_bp = make_github_blueprint(
             redirect_to="admin.admin_index", storage=admin_storage
         )
+        app.config["admin_bp"] = admin_oauth_bp
         app.config["admin_oauth"] = github
         app.config["admin_oauth_login"] = "github.login"
     else:

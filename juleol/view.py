@@ -11,13 +11,11 @@ from flask import (
     redirect,
     url_for,
     flash,
-    g,
     current_app,
 )
 from flask_dance.consumer import oauth_authorized
 from flask_login import current_user, login_required, login_user, logout_user
 import oauthlib.oauth2.rfc6749.errors
-from functools import wraps
 from juleol import db
 import re
 from sqlalchemy import exc
@@ -65,10 +63,12 @@ def logged_in(blueprint, token):
         flash("Failed to log in", "error")
         return False
 
+    blueprint.token = token
+    if blueprint == current_app.config.get("admin_bp"):
+        return True
+
     if not "participant_year" in session:
         return False
-
-    blueprint.token = token
 
     try:
         resp = blueprint.session.get(current_app.config["user_info_path"])
