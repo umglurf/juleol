@@ -5,7 +5,7 @@
 from flask import Flask, g
 from flask_dance.consumer.storage import MemoryStorage
 from flask_login import LoginManager
-from flask_session import Session
+from flask_sessionstore import Session
 from flask_migrate import Migrate, upgrade
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.contrib.google import make_google_blueprint, google
