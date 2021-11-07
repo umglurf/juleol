@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import logging
 import pytest
 
 from betamax import Betamax
@@ -15,8 +14,6 @@ from flask_dance.contrib.google import google
 from unittest.mock import patch, MagicMock, Mock
 
 GOOGLE_OAUTH_TOKEN = '{"access_token": "test-token"}'
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
