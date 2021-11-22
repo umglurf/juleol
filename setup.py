@@ -20,7 +20,7 @@ setup(
         "Flask-Sessionstore",
         "flask_sqlalchemy",
         "PyMySQL",
-        "wtforms[email]",
+        "wtforms[email]~=2.3.3",
         "SQLAlchemy~=1.4.23",
     ],
     setup_requires=["pytest-runner"],
